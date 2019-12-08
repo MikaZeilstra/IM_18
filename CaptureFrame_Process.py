@@ -1,4 +1,5 @@
 import cv2
+import numpy as np
 import os
 import pandas as pd
 import Localization
@@ -14,7 +15,17 @@ To do:
 Inputs:(three)
 	1. file_path: video path
 	2. sample_frequency: second
-	3. save_path: final .csv file path
+    3. save_path: final .csv file path
 Output: None
 """
+
+
 def CaptureFrame_Process(file_path, sample_frequency, save_path):
+    cap = cv2.VideoCapture(file_path)
+    ret, frame = cap.read()
+
+    print(frame.shape)
+    # Display the resulting frame
+    cv2.imshow('frame', frame)
+    cv2.waitKey()
+    cap.release()
