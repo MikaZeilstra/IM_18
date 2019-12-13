@@ -49,14 +49,16 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
     cap = cv2.VideoCapture(file_path)
     ret, frame = cap.read()
 
+
+
     print(frame.shape)
     # Display the resulting frame
-    hsv = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     #h = hsv[:,:,0]
     hl = cv2.Laplacian(hsv,cv2.CV_64F)
     hln = np.uint8(cv2.normalize(hl, None, 0, 255, cv2.NORM_MINMAX))
     binary = np.zeros(hln.shape[0] * hln.shape[1]).reshape(hln.shape[0:2])
-    ge = cv2.cvtColor(hln, cv2.COLOR_BGR2GRAY)
+    #ge = cv2.cvtColor(hln, cv2.COLOR_BGR2GRAY)
     #ge = cv2.equalizeHist(g)
 
     t = cv2.adaptiveThreshold(hsv, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY, 11, 0)
@@ -73,9 +75,21 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
     #         else:
     #             binary[x][y] = 1
 
+    plateTemplate = cv2.imread("TrainingSet/Templates/BinTemplate.jpg", cv2.IMREAD_GRAYSCALE)
+
+    hough = cv2.GeneralizedHoughBallard
+
+    hough.setTemplate(hough, plateTemplate)
+    outArr = []
+    hough.detect(hough, outArr)
+
+
+    print(outArr)
+
 
 
     cv2.imshow('frame',t)
+    #cv2.imwrite("BinTemplate.jpg", t)
 
     cv2.waitKey()
     cap.release()
