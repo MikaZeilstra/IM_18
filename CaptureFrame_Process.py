@@ -21,6 +21,28 @@ Inputs:(three)
 Output: None
 """
 
+def incDiff (hl, hln, rcont):
+    # avgColArr = []
+    #
+    # for x in range(hl.shape[0]) :
+    #     for y in range(hl.shape[1]) :
+    #         np.append(avgColArr, hln[x][y])
+    #
+    # avgCol = np.average(avgColArr);
+
+    lbrt = 0.7
+    print("LBRT: ", lbrt)
+
+    for x in range(hl.shape[0]) :
+        for y in range(hl.shape[1]) :
+            hln[x][y] = hln[x][y] - lbrt
+
+
+    for x in range(hl.shape[0]) :
+        for y in range(hl.shape[1]) :
+            hln[x][y] = hln[x][y] * rcont
+
+
 
 def CaptureFrame_Process(file_path, sample_frequency, save_path):
     print("Now loading file " + file_path)
@@ -32,8 +54,10 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
     hsv = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
     #h = hsv[:,:,0]
     hl = cv2.Laplacian(hsv,cv2.CV_64F)
-    hln = cv2.normalize(hl, None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
+    hln = np.uint8(cv2.normalize(hl, None, 0, 255, cv2.NORM_MINMAX))
     binary = np.zeros(hln.shape[0] * hln.shape[1]).reshape(hln.shape[0:2])
+    ge = cv2.cvtColor(hln, cv2.COLOR_BGR2GRAY)
+    #ge = cv2.equalizeHist(g)
 
     t = cv2.adaptiveThreshold(hsv, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY, 11, 0)
 
@@ -41,6 +65,7 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
     #t = cv2.drawContours(t ,contours, -1, (0,255,0),3)
 
     print(np.max(hln))
+
     # for x in range(hl.shape[0]) :
     #     for y in range(hl.shape[1]):
     #         if(hln[x][y][0] <=THRESHOLD and hln[x][y][1] <=THRESHOLD and hln[x][y][2] <=THRESHOLD):
@@ -49,6 +74,8 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
     #             binary[x][y] = 1
 
 
+
     cv2.imshow('frame',t)
+
     cv2.waitKey()
     cap.release()
