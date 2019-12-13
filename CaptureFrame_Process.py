@@ -29,21 +29,26 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
 
     print(frame.shape)
     # Display the resulting frame
-    hsv = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
-    h = hsv[:,:,0]
+    hsv = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+    #h = hsv[:,:,0]
     hl = cv2.Laplacian(hsv,cv2.CV_64F)
     hln = cv2.normalize(hl, None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
     binary = np.zeros(hln.shape[0] * hln.shape[1]).reshape(hln.shape[0:2])
 
+    t = cv2.adaptiveThreshold(hsv, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY, 11, 0)
+
+    #contours, hierarchy = cv2.findContours(t, 1, 2)
+    #t = cv2.drawContours(t ,contours, -1, (0,255,0),3)
+
     print(np.max(hln))
-    for x in range(hl.shape[0]) :
-        for y in range(hl.shape[1]):
-            if(hln[x][y][0] <=THRESHOLD and hln[x][y][1] <=THRESHOLD and hln[x][y][2] <=THRESHOLD):
-                binary[x][y] = 0
-            else:
-                binary[x][y] = 1
+    # for x in range(hl.shape[0]) :
+    #     for y in range(hl.shape[1]):
+    #         if(hln[x][y][0] <=THRESHOLD and hln[x][y][1] <=THRESHOLD and hln[x][y][2] <=THRESHOLD):
+    #             binary[x][y] = 0
+    #         else:
+    #             binary[x][y] = 1
 
 
-    cv2.imshow('frame', binary)
+    cv2.imshow('frame',t)
     cv2.waitKey()
     cap.release()
