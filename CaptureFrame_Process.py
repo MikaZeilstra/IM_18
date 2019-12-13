@@ -47,49 +47,24 @@ def incDiff (hl, hln, rcont):
 def CaptureFrame_Process(file_path, sample_frequency, save_path):
     print("Now loading file " + file_path)
     cap = cv2.VideoCapture(file_path)
-    ret, frame = cap.read()
+    cap.set(cv2.CAP_PROP_POS_AVI_RATIO,1)
+    t_total = cap.get(cv2.CAP_PROP_POS_MSEC)
+    f_total = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+    cap.set(cv2.CAP_PROP_POS_AVI_RATIO, 0)
+    spf = int(np.round(t_total/ f_total))
+    print(spf)
+    while(True):
+        ret, frame = cap.read()
+        #print(ret)
+        if(not(ret)):
+            cap.set(cv2.CAP_PROP_POS_AVI_RATIO, 0)
+            continue
+        plate = Localization.plate_detection(frame)
 
-
-
-    print(frame.shape)
-    # Display the resulting frame
-    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    #h = hsv[:,:,0]
-    hl = cv2.Laplacian(hsv,cv2.CV_64F)
-    hln = np.uint8(cv2.normalize(hl, None, 0, 255, cv2.NORM_MINMAX))
-    binary = np.zeros(hln.shape[0] * hln.shape[1]).reshape(hln.shape[0:2])
-    #ge = cv2.cvtColor(hln, cv2.COLOR_BGR2GRAY)
-    #ge = cv2.equalizeHist(g)
-
-    t = cv2.adaptiveThreshold(hsv, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY, 11, 0)
-
-    #contours, hierarchy = cv2.findContours(t, 1, 2)
-    #t = cv2.drawContours(t ,contours, -1, (0,255,0),3)
-
-    print(np.max(hln))
-
-    # for x in range(hl.shape[0]) :
-    #     for y in range(hl.shape[1]):
-    #         if(hln[x][y][0] <=THRESHOLD and hln[x][y][1] <=THRESHOLD and hln[x][y][2] <=THRESHOLD):
-    #             binary[x][y] = 0
-    #         else:
-    #             binary[x][y] = 1
-
-    plateTemplate = cv2.imread("TrainingSet/Templates/BinTemplate.jpg", cv2.IMREAD_GRAYSCALE)
-
-    hough = cv2.GeneralizedHoughBallard
-
-    hough.setTemplate(hough, plateTemplate)
-    outArr = []
-    hough.detect(hough, outArr)
-
-
-    print(outArr)
-
-
-
-    cv2.imshow('frame',t)
+        cv2.imshow('frame',plate)
+        if cv2.waitKey(200) & 0xFF == ord('q'):
+            break
     #cv2.imwrite("BinTemplate.jpg", t)
 
-    cv2.waitKey()
+    cv2.destroyAllWindows()
     cap.release()
