@@ -19,16 +19,17 @@ Hints:
 def plate_detection(image):
 	# print(frame.shape)
 	# Display the resulting frame
+	result = []
 	hsv  = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 	for x in range(len(hsv)):
 		for y in range(len(hsv[x])):
 			hsv[x][y][2] = 128;
 			hsv[x][y][1] = 128;
 	eimage = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
-	#gray = cv2.cvtColor(hsv, cv2.COLOR_BGR2GRAY)
+	graySc = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 	#gray = np.uint8(hsv[:,:,0] * 0.5 + hsv[:,:,1]*0.5)
 	gray = hsv[:,:,0]
-	print(gray.shape)
+	#print(gray.shape)
 	# h = hsv[:,:,0]
 	# hl = cv2.Laplacian(hsv,cv2.CV_64F)
 	# hln = np.uint8(cv2.normalize(hl, None, 0, 255, cv2.NORM_MINMAX))
@@ -36,8 +37,8 @@ def plate_detection(image):
 	# ge = cv2.cvtColor(hln, cv2.COLOR_BGR2GRAY)
 	# ge = cv2.equalizeHist(g)
 
-	# t = cv2.adaptiveThreshold(hsv, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY, 11, 0)
-	# tl = cv2.Laplacian(t,cv2.CV_8U)
+	t = cv2.adaptiveThreshold(graySc, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY, 11, 0)
+	tl = cv2.Laplacian(t,cv2.CV_8U)
 	gray = cv2.GaussianBlur(gray,(3,3),10)
 	gray = cv2.bilateralFilter(gray, 7, 21,51)
 	edges = cv2.Canny(gray, 50 ,250)
@@ -68,19 +69,19 @@ def plate_detection(image):
 
 
 			area = cv2.contourArea(hull)
-			circh = cv2.arcLength(hull, True)
-			ratio = 0
-			try:
-				ratio = area / circh
-			except:
-				pass
+			# circh = cv2.arcLength(hull, True)
+			# ratio = 0
+			# try:
+			# 	ratio = area / circh
+			# except:
+			# 	pass
 			# if (250 <= len(contours[i]) <= 250):
 
 			# ------------------------
 			# Retrieve vaguely rectanglur stuff
 			# -----------------------
-			if (5 < ratio < 60 ):
-				print(rec[2])
+			if (len(hull) > 3):
+				#print(rec[2])
 				mask = np.zeros(edges.shape, np.uint8)
 				# print(hull)
 
@@ -88,8 +89,8 @@ def plate_detection(image):
 
 				# print([recp])
 				recp = np.array(cv2.boxPoints(rec), dtype=np.int32)
-				print("found : " + str(i))
-				leg_ratio = np.linalg.norm(recp[0] - recp[1]) / np.linalg.norm(recp[1] - recp[2])
+				#print("found : " + str(i))
+				leg_ratio = rec[1][0]/rec[1][1]
 				cv2.fillPoly(mask, [recp], 120)
 				cv2.fillPoly(mask, [hull[:, 0, :]], 150)
 				unique, counts = np.unique(mask, return_counts=True)
@@ -103,8 +104,8 @@ def plate_detection(image):
 				x_dis = np.max(recp[:,0]) - np.min(recp[:,0])
 				y_dis = np.max(recp[:,1]) - np.min(recp[:,1])
 
-				if (counts[1] / counts[0] < 0.05 and not (1/2 < leg_ratio < 2) and (1/5 < leg_ratio < 5) and x_dis > y_dis and area > 100* 1/5 * 100):
-
+				if (counts[1] / counts[0] < 0.05 and not (1/2 < leg_ratio < 2) and (1/5 < leg_ratio < 5) and x_dis > y_dis and area > 100* 1/2 * 100):
+					#print(rec)
 					#cv2.circle(mask2, tuple(np.int32(rec[0])), 50, 255, 3)
 					#print(recp)q
 					# print(leg_ratio)
@@ -114,11 +115,21 @@ def plate_detection(image):
 
 
 					c2.append(contours[i])
-					cv2.fillPoly(image, [recp], 120)
-					cv2.fillPoly(image, [hull[:, 0, :]], 255)
+
+
+					# cv2.fillPoly(image, [recp], 120)
+					# cv2.fillPoly(image, [hull[:, 0, :]], 255)
 
 					cv2.fillPoly(gray, [recp], 120)
 					cv2.fillPoly(gray, [hull[:, 0, :]], 255)
+
+					br = cv2.boundingRect(hull)
+
+					# rm = cv2.getRotationMatrix2D(tuple(rec[0]),rec[2],1)
+					# #(int(np.ceil(rec[1][0])),int(np.ceil(rec[1][1])))
+					# image = cv2.warpAffine(image, rm , gray.shape,cv2.INTER_CUBIC)
+					cropped = image[br[1]:br[1] + br[3], br[0]:br[0] + br[2]]
+					result.append(cropped)
 
 			# defects = cv2.convexityDefects(contours[i], hulld)
 			# defect_sum = np.sum(defects[:,0,3]/256)
@@ -139,7 +150,7 @@ def plate_detection(image):
 	#cv2.drawContours(mask ,c2, -1, 128,1)
 	#plateTemplate = cv2.imread("TrainingSet/Templates/BinTemplate.jpg", cv2.IMREAD_GRAYSCALE)
 	gray_edge = np.hstack((gray,edges))
-	return image
+	return result
 
 # alg = cv2.createGeneralizedHoughBallard()
 # alg.setTemplate(plateTemplate)

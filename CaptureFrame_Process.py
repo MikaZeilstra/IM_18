@@ -4,6 +4,7 @@ import os
 import pandas as pd
 import Localization
 import Recognize
+import time
 
 
 THRESHOLD  = 0.725
@@ -59,11 +60,16 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
         if(not(ret)):
             cap.set(cv2.CAP_PROP_POS_AVI_RATIO, 0)
             continue
-        plate = Localization.plate_detection(frame)
 
-        cv2.imshow('frame',plate)
-        if cv2.waitKey(200) & 0xFF == ord('q'):
-            break
+        #start = time.time();
+        plate = Localization.plate_detection(frame)
+        #print(time.time() - start)
+        #print(plate.shape)
+        for im in plate:
+            Recognize.segment_and_recognize(im)
+        cv2.imshow('frame',frame)
+        if cv2.waitKey(spf) & 0xFF == ord('q'):
+               break
     #cv2.imwrite("BinTemplate.jpg", t)
 
     cv2.destroyAllWindows()
