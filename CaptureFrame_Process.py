@@ -31,24 +31,44 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
     cap.set(cv2.CAP_PROP_POS_AVI_RATIO, 0)
     spf = int(np.round(t_total/ f_total))
     print(spf)
+    platesList = []
     while(True):
         ret, frame = cap.read()
         #print(ret)
         if(not(ret)):
-            cap.set(cv2.CAP_PROP_POS_AVI_RATIO, 0)
-            continue
-
+            #cap.set(cv2.CAP_PROP_POS_AVI_RATIO, 0)
+            #continue
+            break
         #start = time.time();
         plate = Localization.plate_detection(frame)
         #print(time.time() - start)
         #print(plate.shape)
+
         for im in plate:
-            Recognize.segment_and_recognize(im)
+            rec = Recognize.segment_and_recognize(im)
+
+            if len(rec) != 0:
+                platesList.append(rec)
             #pass
-        cv2.imshow('frame', frame)
-        if cv2.waitKey(spf) & 0xFF == ord('q'):
-               break
+        #cv2.imshow('frame', frame)
+        #if cv2.waitKey(spf) & 0xFF == ord('q'):
+         #      break
     #cv2.imwrite("BinTemplate.jpg", t)
 
     cv2.destroyAllWindows()
     cap.release()
+
+    uniqe, count = np.unique(platesList, return_counts=True)
+
+    realPlatesIndexes = []
+
+    for i, j in enumerate(count):
+        if count[i] >= 10:
+            realPlatesIndexes.append(i)
+
+    for i, j in enumerate(realPlatesIndexes) :
+        print(uniqe[j])
+
+    # print(uniqe)
+    # print(count)
+

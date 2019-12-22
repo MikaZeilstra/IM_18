@@ -66,6 +66,9 @@ def segment_and_recognize(plate_imgs):
 	checked = []
 	# areadict = {}
 	# area = []
+
+	brecVals = []
+	plate = []
 	for i in range(len(cont)):
 		if( len(cont[i]) > 3 ):
 			minRec = cv2.minAreaRect(cont[i])
@@ -83,6 +86,7 @@ def segment_and_recognize(plate_imgs):
 				# cv2.imshow("", mask)
 				# cv2.waitKey()
 				allDiffs = []
+
 
 				#for t in range(0, 10):
 				croppedImage = edges[brec[1]:brec[1] + brec[3], brec[0]:brec[0] + brec[2]]
@@ -152,7 +156,8 @@ def segment_and_recognize(plate_imgs):
 
 					allDiffs.append(diff)
 
-					print("COMPARING WITH " + str(t) + " AND DIFF IS: " + str(diff))
+
+					#print("COMPARING WITH " + str(t) + " AND DIFF IS: " + str(diff))
 
 					#print(diff.dtype)
 
@@ -169,152 +174,43 @@ def segment_and_recognize(plate_imgs):
 				if (allDiffs[minIndex] < 0.3):
 					pass
 					print("WE FOUND A :" + str(minIndex))
+					brecVals.append(brec[0])
+					print("APPENDING: " + str(brec[0]))
+					plate.append(minIndex)
 
 
-				cv2.imshow("frame", edges)
-				cv2.waitKey()
+				# cv2.imshow("frame", edges)
+				# cv2.waitKey()
 
 
-				# reference_image = trIm[5]
-				# detect_s = GeneralisedHough.general_hough_closure(reference_image)
-				#
-				# im4 = edges[brec[1]:brec[1] + brec[3], brec[0]:brec[0] + brec[2]]
-				# GeneralisedHough.test_general_hough(detect_s, reference_image, im4)
-
-				# template = trIm[5]
-				# im4 = edges[brec[1]:brec[1] + brec[3], brec[0]:brec[0] + brec[2]]
-				# maskis, draw = GenHough.hough(im4, template)
-
-				#im4 = edges[brec[1]:brec[1] + brec[3], brec[0]:brec[0] + brec[2]]
+	finalPlate = []
 
 
-				# for y, g in enumerate(trIm):
-				# 	refim = imread("genHough/Input1Ref.png")
-				# 	im = edges #imread('Input1.png')
-				#
-				# 	table = buildRefTable(refim)
-				# 	acc = matchTable(im, table)
-				# 	val, ridx, cidx = findMaxima(acc)
-				# 	# code for drawing bounding-box in accumulator array...
-				#
-				# 	acc[ridx - 5:ridx + 5, cidx - 5] = val
-				# 	acc[ridx - 5:ridx + 5, cidx + 5] = val
-				#
-				# 	acc[ridx - 5, cidx - 5:cidx + 5] = val
-				# 	acc[ridx + 5, cidx - 5:cidx + 5] = val
-				#
-				# 	plt.figure(1)
-				# 	imshow(acc)
-				# 	plt.show()
-				#
-				# 	# code for drawing bounding-box in original image at the found location...
-				#
-				# 	# find the half-width and height of template
-				# 	hheight = np.floor(refim.shape[0] / 2) + 1
-				# 	hwidth = np.floor(refim.shape[1] / 2) + 1
-				#
-				# 	# find coordinates of the box
-				# 	rstart = int(max(ridx - hheight, 1))
-				# 	rend = int(min(ridx + hheight, im.shape[0] - 1))
-				# 	cstart = int(max(cidx - hwidth, 1))
-				# 	cend = int(min(cidx + hwidth, im.shape[1] - 1))
-				#
-				# 	# draw the box
-				# 	im[rstart:rend, cstart] = 255
-				# 	im[rstart:rend, cend] = 255
-				#
-				# 	im[rstart, cstart:cend] = 255
-				# 	im[rend, cstart:cend] = 255
-				#
-				# 	# show the image
-				# 	plt.figure(2), imshow(refim)
-				# 	plt.figure(3), imshow(im)
-				# 	plt.show()
+	valsLength = len(brecVals)
+
+	sortedMin = np.argsort(brecVals)
+
+	for i in range(0, valsLength) :
+		#minX = np.argmin(brecVals)
+
+		finalPlate.append(plate[sortedMin[i]])
+		#brecVals.remove(brecVals[minX])
+		#plate.remove(plate[minX])
 
 
-				# alg = cv2.createGeneralizedHoughBallard()
-				#
-				#
-				#
-				# alg.setTemplate(trIm[5])
-				#
-				# pos, votes = alg.detect(im4)
-				#
-				# for g, h in enumerate(pos):
-				# 	if votes[g] > 5:
-				# 		print("FOUND NUMBER " + str(5))
+	print("LENGTH OF THE PLATE IS: " +str(len(finalPlate)))
+	if len(finalPlate) >= 6:
 
-
-
-
-				#c2.append(np.array(cv2.boxPoints(minRec),dtype=np.int32))
-				# for y in range(0, 10):
-				# 	#trainingImage = cv2.imread('SameSizeNumbers/' + str(y) + '.bmp', cv2.IMREAD_GRAYSCALE)  # trainImage
-				#
-				#
-				# 	# find the keypoints and descriptors with SIFT
-				# 	im4 = edges[brec[1]:brec[1] + brec[3], brec[0]:brec[0] + brec[2]]
-				# 	kp1, des1 = sift.detectAndCompute(im4, None)
-				# 	#kp2, des2 = sift.detectAndCompute(trainingImage, None)
-				#
-				# 	# BFMatcher with default params
-				# 	bf = cv2.BFMatcher()
-				# 	matches = bf.knnMatch(des1, des2[y], k=2)
-				#
-				# 	# Apply ratio test
-				# 	good = []
-				# 	for m, n in matches:
-				# 		if m.distance <  0.75 * n.distance:
-				# 			good.append([m])
-				#
-				# 	if len(good) > 3:
-				# 		print("FOUND ME A NUMBER YAY: " + str(y))
-				# 		img3 = cv2.drawMatchesKnn(im4, kp1, trIm[y], kp2[y], good, None,
-				# 								  flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
-				# 		plt.imshow(img3), plt.show()
-				# 		for j in good:
-				# 			print(j)
-					# cv.drawMatchesKnn expects list of lists as matches.
-
-
-	# print(area)
-	# min_areas = []
-	# min_var = 10**5
-	# for ar in  area:
-	# 	ns = nsmallest(4,area,key=lambda y : abs(ar-y))
-	# 	if(np.var(ns) < min_var):
-	# 		min_areas = ns
-	# 		min_var = np.var(ns)
-	# if(len(area) > 4):
-	# 	for n in min_areas:
-	# 		area.remove(n)
-	# 	ns = add_smallest_var(ns,area)
-	# 	while(np.var(ns) < np.var(min_areas) + np.mean(min_areas) and area):
-	# 		print(min_areas)
-	# 		min_areas = ns
-	# 		ns = add_smallest_var(ns, area)
-	# else:
-	# 	return ""
-	# #print(min_areas)
-	# for ar in min_areas:
-	# 	c2.append(areadict[ar])
-
-
-
+		print("PRINTINT LICENTE PLATE : ----------------------------")
+		print(finalPlate)
+		return finalPlate
+	else:
+		return []
 
 	#cv2.drawContours(plate_imgs,c2, -1, 255, 1)
 	#cv2.imshow('frame', edges)
 	#cv2.imshow("frame", img3)
 	#cv2.waitKey()
 
-	return ""
+	#return finalPlate
 
-def add_smallest_var(to_add, options):
-	min_var = 10**5
-	res = []
-	for o in options:
-		if np.var(to_add + [o]) < min_var:
-			res = to_add + [o]
-			min_var = np.var(res)
-	options.remove(res[-1])
-	return res
