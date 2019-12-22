@@ -38,14 +38,14 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
             cap.set(cv2.CAP_PROP_POS_AVI_RATIO, 0)
             continue
 
-        start = time.time();
+        #start = time.time();
         plate = Localization.plate_detection(frame)
-        print(time.time() - start)
+        #print(time.time() - start)
         #print(plate.shape)
-        #for im in plate:
-            #Recognize.segment_and_recognize(im)
+        for im in plate:
+            Recognize.segment_and_recognize(im)
             #pass
-        cv2.imshow('frame', plate)
+        cv2.imshow('frame', frame)
         if cv2.waitKey(spf) & 0xFF == ord('q'):
                break
     #cv2.imwrite("BinTemplate.jpg", t)

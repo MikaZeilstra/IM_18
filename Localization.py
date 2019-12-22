@@ -158,7 +158,7 @@ def plate_detection(image):
 								image = cv2.warpAffine(image, rm , image[:,:,0].shape,cv2.INTER_CUBIC)
 								cropped = image[br[1]:br[1] + br[3], br[0]:br[0] + br[2]]
 								result.append(cropped)
-								return cropped
+								#return cropped
 
 			# defects = cv2.convexityDefects(contours[i], hulld)
 			# defect_sum = np.sum(defects[:,0,3]/256)
@@ -183,7 +183,7 @@ def plate_detection(image):
 	#cv2.drawContours(mask2 ,c2, -1, 128,1)
 	#plateTemplate = cv2.imread("TrainingSet/Templates/BinTemplate.jpg", cv2.IMREAD_GRAYSCALE)
 	# gray_edge = np.hstack((gray,edges))
-	return image
+	return result
 
 # alg = cv2.createGeneralizedHoughBallard()
 # alg.setTemplate(plateTemplate)
