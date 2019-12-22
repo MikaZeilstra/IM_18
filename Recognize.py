@@ -1,7 +1,10 @@
 import cv2
 import numpy as np
-import os
-from heapq import nsmallest
+from skimage.io import imread, imshow
+
+from find_maxima import *
+from genHough.build_reference_table import *
+from match_table import *
 
 """
 In this file, you will define your own segment_and_recognize function.
@@ -19,12 +22,26 @@ Hints:
 	You may need to define other functions.
 """
 def segment_and_recognize(plate_imgs):
+	# Initiate SIFT detector
+	sift = cv2.xfeatures2d.SIFT_create()
+	kp2 = []
+	des2 = []
+	trIm = []
+	for y in range(0, 10):
+		trainingImage = cv2.imread('SameSizeNumbers/' + str(y) + '.bmp', cv2.IMREAD_GRAYSCALE)  # trainImage
+		trIm.append(cv2.Canny(trainingImage, 50, 150))
+		kpt, dest = sift.detectAndCompute(trainingImage, None)
+		kp2.append(kpt)
+		des2.append(dest)
+
+
 	gray = cv2.cvtColor(plate_imgs, cv2.COLOR_BGR2GRAY)
 	t = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 25, 5)
 	# print(np.average(gray))
 	# gray = cv2.bilateralFilter(gray, 7, 21, 51)q
 
 	#
+	img3 = t
 
 	kernel = np.ones((2, 2), np.uint8)
 	#t = cv2.morphologyEx(t, cv2.MORPH_OPEN, kernel,iterations=1)
@@ -41,11 +58,110 @@ def segment_and_recognize(plate_imgs):
 			minRec = cv2.minAreaRect(cont[i])
 			hull = cv2.convexHull(cont[i])
 			brec = cv2.boundingRect(cont[i])
-			if(brec[2] < brec[3] and  brec[2] > 5 and brec[3] > 5  and 1/2 < brec[2]/brec[3] < 1/1.1):
+			if(brec[2] < brec[3] and  brec[2] > 10 and brec[3] > 10  and 1/2 < brec[2]/brec[3] < 1/1.1):
 				areadict[brec[2] * brec[3]] = cont[i]
 				area.append(brec[2] * brec[3])
 				cv2.rectangle(edges,(brec[0],brec[1]),(brec[0] + brec[2],brec[1]+brec[3]),120,2)
+
+				# reference_image = trIm[5]
+				# detect_s = GeneralisedHough.general_hough_closure(reference_image)
+				#
+				# im4 = edges[brec[1]:brec[1] + brec[3], brec[0]:brec[0] + brec[2]]
+				# GeneralisedHough.test_general_hough(detect_s, reference_image, im4)
+
+				# template = trIm[5]
+				# im4 = edges[brec[1]:brec[1] + brec[3], brec[0]:brec[0] + brec[2]]
+				# maskis, draw = GenHough.hough(im4, template)
+
+				#im4 = edges[brec[1]:brec[1] + brec[3], brec[0]:brec[0] + brec[2]]
+				for y, g in enumerate(trIm):
+					refim = imread("genHough/Input1Ref.png")
+					im = edges #imread('Input1.png')
+
+					table = buildRefTable(refim)
+					acc = matchTable(im, table)
+					val, ridx, cidx = findMaxima(acc)
+					# code for drawing bounding-box in accumulator array...
+
+					acc[ridx - 5:ridx + 5, cidx - 5] = val
+					acc[ridx - 5:ridx + 5, cidx + 5] = val
+
+					acc[ridx - 5, cidx - 5:cidx + 5] = val
+					acc[ridx + 5, cidx - 5:cidx + 5] = val
+
+					plt.figure(1)
+					imshow(acc)
+					plt.show()
+
+					# code for drawing bounding-box in original image at the found location...
+
+					# find the half-width and height of template
+					hheight = np.floor(refim.shape[0] / 2) + 1
+					hwidth = np.floor(refim.shape[1] / 2) + 1
+
+					# find coordinates of the box
+					rstart = int(max(ridx - hheight, 1))
+					rend = int(min(ridx + hheight, im.shape[0] - 1))
+					cstart = int(max(cidx - hwidth, 1))
+					cend = int(min(cidx + hwidth, im.shape[1] - 1))
+
+					# draw the box
+					im[rstart:rend, cstart] = 255
+					im[rstart:rend, cend] = 255
+
+					im[rstart, cstart:cend] = 255
+					im[rend, cstart:cend] = 255
+
+					# show the image
+					plt.figure(2), imshow(refim)
+					plt.figure(3), imshow(im)
+					plt.show()
+
+
+				# alg = cv2.createGeneralizedHoughBallard()
+				#
+				#
+				#
+				# alg.setTemplate(trIm[5])
+				#
+				# pos, votes = alg.detect(im4)
+				#
+				# for g, h in enumerate(pos):
+				# 	if votes[g] > 5:
+				# 		print("FOUND NUMBER " + str(5))
+
+
+
+
 				#c2.append(np.array(cv2.boxPoints(minRec),dtype=np.int32))
+				# for y in range(0, 10):
+				# 	#trainingImage = cv2.imread('SameSizeNumbers/' + str(y) + '.bmp', cv2.IMREAD_GRAYSCALE)  # trainImage
+				#
+				#
+				# 	# find the keypoints and descriptors with SIFT
+				# 	im4 = edges[brec[1]:brec[1] + brec[3], brec[0]:brec[0] + brec[2]]
+				# 	kp1, des1 = sift.detectAndCompute(im4, None)
+				# 	#kp2, des2 = sift.detectAndCompute(trainingImage, None)
+				#
+				# 	# BFMatcher with default params
+				# 	bf = cv2.BFMatcher()
+				# 	matches = bf.knnMatch(des1, des2[y], k=2)
+				#
+				# 	# Apply ratio test
+				# 	good = []
+				# 	for m, n in matches:
+				# 		if m.distance <  0.75 * n.distance:
+				# 			good.append([m])
+				#
+				# 	if len(good) > 3:
+				# 		print("FOUND ME A NUMBER YAY: " + str(y))
+				# 		img3 = cv2.drawMatchesKnn(im4, kp1, trIm[y], kp2[y], good, None,
+				# 								  flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
+				# 		plt.imshow(img3), plt.show()
+				# 		for j in good:
+				# 			print(j)
+					# cv.drawMatchesKnn expects list of lists as matches.
+
 
 	# print(area)
 	# min_areas = []
@@ -70,8 +186,11 @@ def segment_and_recognize(plate_imgs):
 	# 	c2.append(areadict[ar])
 
 
-	cv2.drawContours(plate_imgs,c2, -1, 255, 1)
+
+
+	#cv2.drawContours(plate_imgs,c2, -1, 255, 1)
 	cv2.imshow('frame', edges)
+	#cv2.imshow("frame", img3)
 	cv2.waitKey()
 
 	return ""
