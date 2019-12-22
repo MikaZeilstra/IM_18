@@ -1,10 +1,5 @@
 import cv2
 import numpy as np
-from skimage.io import imread, imshow
-
-from find_maxima import *
-from genHough.build_reference_table import *
-from match_table import *
 
 """
 In this file, you will define your own segment_and_recognize function.
@@ -23,9 +18,8 @@ Hints:
 """
 def segment_and_recognize(plate_imgs):
 	# Initiate SIFT detector
-	sift = cv2.xfeatures2d.SIFT_create()
-	kp2 = []
-	des2 = []
+	# kp2 = []
+	# des2 = []
 	trIm = []
 	for y in range(0, 10):
 		trainingImage = cv2.imread('SameSizeNumbers/' + str(y) + '.bmp', cv2.IMREAD_GRAYSCALE)  # trainImage
@@ -40,7 +34,7 @@ def segment_and_recognize(plate_imgs):
 		trIm.append(trainingImage)
 
 
-	print(trIm)
+	#print(trIm)
 
 
 
@@ -52,7 +46,7 @@ def segment_and_recognize(plate_imgs):
 	#
 	img3 = t
 
-	kernel = np.ones((2, 2), np.uint8)
+	# kernel = np.ones((2, 2), np.uint8)
 	#t = cv2.morphologyEx(t, cv2.MORPH_OPEN, kernel,iterations=1)
 	#t = cv2.morphologyEx(t, cv2.MORPH_CLOSE, kernel,iterations=1)
 	edges = cv2.Canny(t, 0, 100)
@@ -66,32 +60,56 @@ def segment_and_recognize(plate_imgs):
 
 	#edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, np.ones([2, 2]), iterations=2)
 
-	cont, hier = cv2.findContours(newT, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-	mask = np.zeros(plate_imgs.shape)
+	cont, hier = cv2.findContours(newT, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+	# mask = np.zeros(plate_imgs.shape)
 	c2 = []
-	areadict = {}
-	area = []
+	checked = []
+	# areadict = {}
+	# area = []
 	for i in range(len(cont)):
-		if( len(cont[i]) > 3 and hier[0][i][3] < 0):
+		if( len(cont[i]) > 3 ):
 			minRec = cv2.minAreaRect(cont[i])
 			hull = cv2.convexHull(cont[i])
 			brec = cv2.boundingRect(cont[i])
-			if(brec[2] < brec[3] and  brec[2] > 10 and brec[3] > 10  and 1/2 < brec[2]/brec[3] < 1/1.1):
-				cv2.rectangle(edges,(brec[0],brec[1]),(brec[0] + brec[2],brec[1]+brec[3]),120,2)
 
+			if(brec[2] < brec[3] and  brec[2] > 10 and brec[3] > 10  and 1/2 < brec[2]/brec[3] < 1/1.1 and [brec[0], brec[1]] not in checked ):
+
+				checked.append([brec[0],brec[1]])
+				#cv2.rectangle(edges, (brec[0], brec[1]), (brec[0] + brec[2], brec[1] + brec[3]), 120, 2)
+				#cv2.circle(edges, (brec[0],brec[1]), 10, 170, 2)
+				mask = np.zeros(edges.shape)
+				cv2.drawContours(mask,cont,i,255)
+				#print()
+				# cv2.imshow("", mask)
+				# cv2.waitKey()
 				allDiffs = []
 
 				#for t in range(0, 10):
+				croppedImage = edges[brec[1]:brec[1] + brec[3], brec[0]:brec[0] + brec[2]]
+
+				cv2.drawContours(edges, cont, i, 255, -1)
+
+				croppedImage = cv2.morphologyEx(croppedImage, cv2.MORPH_OPEN, np.ones([3, 3]), iterations=2)
+
+				# cv2.imshow("f", croppedImage)
+				# cv2.waitKey()
+
+				width = int(croppedImage.shape[1])
+				height = int(croppedImage.shape[0])
+				dim = (width, height)
+
+
+
 
 				for t in range(0, 27):
+					image = trIm[t]
 					#allDiffs.append([])
 
-					areadict[brec[2] * brec[3]] = cont[i]
-					area.append(brec[2] * brec[3])
+					# areadict[brec[2] * brec[3]] = cont[i]
+					# area.append(brec[2] * brec[3])
 
 					#croppedImage = edges[brec[1]:brec[1] + brec[3], brec[0]:brec[0] + brec[2]]
 
-					croppedImage = edges[brec[1]:brec[1] + brec[3], brec[0]:brec[0] + brec[2]]
 
 					#cv2.fillPoly(edges, pts=[cont[i]], color=(255,255,255))
 
@@ -100,7 +118,7 @@ def segment_and_recognize(plate_imgs):
 					#cv2.floodFill(edges, cont[i],  , 255)
 
 
-					cv2.drawContours(edges, cont, i, 255,-1)
+
 
 
 					#cv2.fillPoly(edges, cont[i], 255, lineType=True)
@@ -109,9 +127,7 @@ def segment_and_recognize(plate_imgs):
 
 
 
-					image = trIm[t]
 
-					croppedImage = cv2.morphologyEx(croppedImage, cv2.MORPH_OPEN, np.ones([3,3]), iterations=2)
 
 					#print("SHAPE CROPPED: " + str(croppedImage.shape[0]))
 
@@ -120,9 +136,7 @@ def segment_and_recognize(plate_imgs):
 					# ratio1 = croppedImage.shape[0] / image.shape[0]
 					# ratio2 = croppedImage.shape[1] / image.shape[1]
 
-					width = int(croppedImage.shape[1])
-					height = int(croppedImage.shape[0])
-					dim = (width, height)
+
 					# resize image
 					resized = cv2.resize(image, dim, interpolation=cv2.INTER_NEAREST)
 
@@ -146,14 +160,16 @@ def segment_and_recognize(plate_imgs):
 
 
 
-				allMins = []
+				#allMins = []
 
-				print(allDiffs)
+				#print(allDiffs)
 				#for t in range(0, 10):
 
 				minIndex = np.argmin(allDiffs)
 				if (allDiffs[minIndex] < 0.3):
+					pass
 					print("WE FOUND A :" + str(minIndex))
+
 
 				cv2.imshow("frame", edges)
 				cv2.waitKey()
@@ -289,7 +305,7 @@ def segment_and_recognize(plate_imgs):
 	#cv2.drawContours(plate_imgs,c2, -1, 255, 1)
 	#cv2.imshow('frame', edges)
 	#cv2.imshow("frame", img3)
-	cv2.waitKey()
+	#cv2.waitKey()
 
 	return ""
 
