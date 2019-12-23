@@ -24,6 +24,8 @@ Output: None
 
 def CaptureFrame_Process(file_path, sample_frequency, save_path):
     print("Now loading file " + file_path)
+    Symbols = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'B', 'D', 'F', 'G', 'H', 'J', 'k', 'L', 'M', 'N', 'P', 'R', 'S', 'T', 'V','X', 'Z']
+
     cap = cv2.VideoCapture(file_path)
     cap.set(cv2.CAP_PROP_POS_AVI_RATIO,1)
     t_total = cap.get(cv2.CAP_PROP_POS_MSEC)
@@ -59,9 +61,13 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
     cap.release()
 
     uniqe, count = np.unique(platesList, return_counts=True)
-
+    #Translate to symbols
+    print(uniqe)
+    uniqe = [[Symbols[s] for s in p] for p in uniqe]
     realPlatesIndexes = []
 
+    plates = list(zip(uniqe,count))
+    print("--- PRINTING PLATES ---")
     for i, j in enumerate(count):
         if count[i] >= 10:
             realPlatesIndexes.append(i)
@@ -70,5 +76,5 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
         print(uniqe[j])
 
     # print(uniqe)
-    # print(count)
+    print(plates)
 

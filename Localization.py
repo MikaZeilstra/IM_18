@@ -29,12 +29,12 @@ def plate_detection(image):
 	# lGray = cv2.Laplacian(hsv[:,:,2], cv2.CV_8U)
 	# eimage = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
 	# eGray = cv2.cvtColor(eimage, cv2.COLOR_BGR2GRAY)
-	graySc = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-	#gray = np.uint8(hsv[:,:,0] * 0.5 + hsv[:,:,1]*0.5)
+	# graySc = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+	# gray = np.uint8(hsv[:,:,0] * 0.5 + hsv[:,:,1]*0.5)
 	# gray = hsv[:,:,1]
 	# hs = np.hstack([hsv[:,:,0] , hsv[:,:,1],hsv[:,:,2]])
 	rgbEdges = np.zeros(image.shape, dtype=np.uint8)
-	edgeFuse = np.zeros(image.shape[0:2],dtype=np.uint8)
+	#edgeFuse = np.zeros(image.shape[0:2],dtype=np.uint8)
 	#print(edgeFuse.shape)
 	hve = np.zeros(rgbEdges[:,:,0].shape, dtype=np.uint8)
 	for plane in [0,2]:
@@ -46,7 +46,7 @@ def plate_detection(image):
 	#print(gray.shape)
 	# h = hsv[:,:,0]
 	hve = np.uint8(hve)
-	hl = cv2.Laplacian(image,cv2.CV_64F)
+	#hl = cv2.Laplacian(image,cv2.CV_64F)
 	# hln = np.uint8(cv2.normalize(hl, None, 0, 255, cv2.NORM_MINMAX))
 	# binary = np.zeros(hln.shape[0] * hln.shape[1]).reshape(hln.shape[0:2])
 	# ge = cv2.cvtColor(hln, cv2.COLOR_BGR2GRAY)
