@@ -17,6 +17,8 @@ Hints:
 	You may need to define other functions.
 """
 def segment_and_recognize(plate_imgs):
+	#cv2.imshow("frame",plate_imgs)
+	#cv2.waitKey()
 	# Initiate SIFT detector
 	# kp2 = []
 	# des2 = []
@@ -55,8 +57,8 @@ def segment_and_recognize(plate_imgs):
 
 	newT = cv2.Laplacian(t, cv2.CV_8U)
 
-	# cv2.imshow("T", newT)
-	# cv2.waitKey()
+	#cv2.imshow("T", newT)
+	#cv2.waitKey()
 
 	#edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, np.ones([2, 2]), iterations=2)
 
