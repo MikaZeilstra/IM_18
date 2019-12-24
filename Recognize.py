@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from collections import defaultdict
+from scipy import stats as st
 
 """
 In this file, you will define your own segment_and_recognize function.
@@ -82,7 +83,7 @@ def segment_and_recognize(plate_imgs):
 			#hull = cv2.convexHull(cont[i])
 			brec = cv2.boundingRect(cont[i])
 
-			if(brec[2] < brec[3] and  brec[2] > 5 and brec[3] > 10  and 1/2 < brec[2]/brec[3] < 1/1.1 and [brec[0], brec[1]] not in checked ):
+			if(brec[2] < brec[3] and  brec[2] > 5 and brec[3] > 10 and [brec[0],brec[1]] not in checked ):
 				#cv2.rectangle(newT, (brec[0], brec[1]), (brec[0] + brec[2], brec[1] + brec[3]), 120, 1)
 				checked.append([brec[0],brec[1]])
 				brecs[i] = brec
@@ -101,17 +102,30 @@ def segment_and_recognize(plate_imgs):
 				# cv2.waitKey()
 	#children = []
 	#childMap = defaultdict(list)
-	# for id in contIds:
-	# 	#print(hier[0][id][2])
-	# 	#print(id)
-	# 	isInside = check_inside(brecs,brecs[id])
-	# 	if isInside:
-	# 		#children.append(cont[id])
-	# 		#childMap[isInside - 1].append(cont[id])
-	# 		contIds.remove(id)
-	# 		del brecs[id]
+	for id in contIds:
+	 	#print(hier[0][id][2])
+	 	#print(id)
+	 	isInside = check_inside(brecs,brecs[id] , id)
+	 	if isInside:
+	 		#children.append(cont[id])
+	 		#childMap[isInside - 1].append(cont[id])
+	 		contIds.remove(id)
+	 		del brecs[id]
 	# 		#print("t")
 	# 		#cv2.drawContours(newT, cont, id, 90, -1)
+
+	if(len(brecs) > 0):
+		mode_Y = st.mode(np.array(list(brecs.values()))[:,1])[0]
+		mode_High = st.mode(np.array(list(brecs.values()))[:, 3])[0]
+		eps = np.ceil(plate_imgs.shape[0] /10)
+
+		for id in contIds:
+			if not(mode_Y - eps < brecs[id][1] < mode_Y + eps and mode_High - eps < brecs[id][3] < mode_High + eps):
+				contIds.remove(id)
+				del brecs[id]
+	else:
+		return []
+
 
 	for id in contIds:
 		allDiffs = []
@@ -138,8 +152,10 @@ def segment_and_recognize(plate_imgs):
 
 
 
+
+
 		for cid in ccontIds[:]:
-			isInside = check_inside(cbrecs, cbrecs[cid])
+			isInside = check_inside(cbrecs, cbrecs[cid], cid)
 			if isInside:
 				#print("c")
 				cropchildMap[isInside - 1].append(ccontours[cid])
@@ -179,6 +195,8 @@ def segment_and_recognize(plate_imgs):
 		height = int(croppedImage.shape[0])
 		dim = (width, height)
 
+
+
 		for t in range(0, 27):
 			image = trIm[t]
 
@@ -193,18 +211,22 @@ def segment_and_recognize(plate_imgs):
 
 			allDiffs.append(diff)
 
-			print("COMPARING WITH " + str(t) + " AND DIFF IS: " + str(diff))
-			print("DIFFERENCE : " + str(diff))
-			cv2.namedWindow("L", cv2.WINDOW_NORMAL)
-			cv2.imshow("L", np.hstack([croppedImage, resized]))
-			cv2.waitKey()
+			#print("COMPARING WITH " + str(t) + " AND DIFF IS: " + str(diff))
+			#print("DIFFERENCE : " + str(diff))
+			#cv2.namedWindow("L", cv2.WINDOW_NORMAL)
+			#cv2.imshow("L", np.hstack([croppedImage, resized]))
+			#cv2.waitKey()
+
+
 
 
 
 		minIndex = np.argmin(allDiffs)
-		if (allDiffs[minIndex] < 0.3):
+
+		#print("found possible " + str(minIndex) + " with diff " + str(allDiffs[minIndex]))
+		if (allDiffs[minIndex] < 0.35):
 			#pass
-			print("WE FOUND A :" + str(minIndex))
+			#print("WE FOUND A :" + str(minIndex))
 			brecVals.append(brecs[id][0])
 			# print("APPENDING: " + str(brec[0]))
 			plate.append(minIndex)
@@ -212,11 +234,14 @@ def segment_and_recognize(plate_imgs):
 
 	finalPlate = []
 
-	# cv2.namedWindow("newT", cv2.WINDOW_NORMAL)
-	# cv2.imshow("newT", newT)
-	# cv2.waitKey()
+	#cv2.namedWindow("newT", cv2.WINDOW_NORMAL)
+	#cv2.imshow("newT", newT)
+	#cv2.waitKey()
 
 	#print(brecVals)
+
+
+
 
 	valsLength = len(brecVals)
 
@@ -238,7 +263,7 @@ def segment_and_recognize(plate_imgs):
 
 		#print(finalPlate)
 
-		return finalPlate
+		return tuple(finalPlate)
 	else:
 		return []
 
@@ -249,9 +274,9 @@ def segment_and_recognize(plate_imgs):
 
 	#return finalPlate
 
-def check_inside(br_list,check):
+def check_inside(br_list,check, br_id):
 	#print(br_list)
 	for id , br in br_list.items():
-		if check[0] > br[0] and check[1] > br[1] and check[0] + check[2] < br[0] + br[2] and check[1] + check[3] < br[3] + br[3]:
+		if check[0] >= br[0] and check[1] >= br[1] and check[0] + check[2] <= br[0] + br[2] and check[1] + check[3] <= br[3] + br[3] and br_id != id:
 			return id + 1
 	return False

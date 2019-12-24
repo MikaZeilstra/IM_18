@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+from collections import Counter
 import os
 import pandas as pd
 import Localization
@@ -60,17 +61,24 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
     cv2.destroyAllWindows()
     cap.release()
 
-    uniqe, count = np.unique(platesList, return_counts=True)
+
+    counter = Counter(platesList)
+    #print(platesList)
+
+    uniqe = list(counter.keys())
+    count = list(counter.values())
+
     #Translate to symbols
-    print(uniqe)
+    #print(uniqe)
     uniqe = [[Symbols[s] for s in p] for p in uniqe]
     realPlatesIndexes = []
 
     plates = list(zip(uniqe,count))
     print("--- PRINTING PLATES ---")
+
     for i, j in enumerate(count):
-        if count[i] >= 10:
-            realPlatesIndexes.append(i)
+         if count[i] >= 5:
+             realPlatesIndexes.append(i)
 
     for i, j in enumerate(realPlatesIndexes) :
         print(uniqe[j])
