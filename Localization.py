@@ -66,7 +66,7 @@ def plate_detection(image):
 
 	contours, hierarchy = cv2.findContours(hve, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 	c2 = []
-	areas = []
+	#areas = []
 
 	mask2 = np.zeros(image[:,:,0].shape, np.uint8)
 	for i in range(len(contours)):
@@ -100,7 +100,7 @@ def plate_detection(image):
 				#print(rec[2])
 				leg_ratio = rec[1][0] / rec[1][1]
 
-				if(not (1/3.5 < leg_ratio < 3.5) and (1/5 < leg_ratio < 5)):
+				if(not (1/2 < leg_ratio < 2) and (1/5 < leg_ratio < 5)):
 					recp = np.array(cv2.boxPoints(rec), dtype=np.int32)
 					x_dis = np.max(recp[:, 0]) - np.min(recp[:, 0])
 					y_dis = np.max(recp[:, 1]) - np.min(recp[:, 1])
@@ -126,9 +126,10 @@ def plate_detection(image):
 				# cv2.fillPoly(mask2, [hull[:, 0, :]], 255)
 
 				#c2.append(contours[i])
-
-
-						if (len(counts) > 2 and counts[1]/counts[2] < 0.25):
+						#print(image[:,:,0].shape[1])
+						#print([xCor <= image[:,:,0].shape[1]  for xCor in recp[:,0]])
+						#print([0 <= xCor <= image[:,:,0].shape[1]  for xCor in recp[:,0]])
+						if (len(counts) > 2 and counts[1]/counts[2] < 0.25 and all([0 < xCor < image[:,:,0].shape[1]  for xCor in recp[:,0]]) and  all([0 < yCor < image[:,:,0].shape[0]  for yCor in recp[:,1]])):
 					#print(rec)
 					#cv2.circle(mask2, tuple(np.int32(rec[0])), 50, 255, 3)
 					#print(recp)q
@@ -149,14 +150,22 @@ def plate_detection(image):
 					# cv2.fillPoly(gray, [recp], 120)
 					# cv2.fillPoly(gray, [hull[:, 0, :]], 255)
 
-								br = cv2.boundingRect(hull)
-
-								areas.append(br[2] * br[3])
+								#br = cv2.boundingRect(hull)
+								#print(recp)
+								#areas.append(br[2] * br[3])
 
 								rm = cv2.getRotationMatrix2D(tuple(rec[0]),rec[2],1)
 							#(int(np.ceil(rec[1][0])),int(np.ceil(rec[1][1])))
-								image = cv2.warpAffine(image, rm , image[:,:,0].shape,cv2.INTER_CUBIC)
-								cropped = image[br[1]:br[1] + br[3], br[0]:br[0] + br[2]]
+								image = cv2.warpAffine(src=image, M=rm ,dsize=(image[:,:,0].shape[1],image[:,:,0].shape[0]))
+								#cropped = image[br[1]:br[1] + br[3], br[0]:br[0] + br[2]]
+								xCor = int(rec[0][0] - rec[1][0] / 2) -1
+								yCor = int(rec[0][1] - rec[1][1] / 2) -1
+								#cropped = image[0: hve.shape[0], 0:hve.shape[1]]
+								cropped = image[yCor: yCor + int(rec[1][1])+ 2,  xCor:xCor + int(rec[1][0]) + 2]
+
+								#cv2.imshow("",image)
+								#cv2.waitKey()
+
 								result.append(cropped)
 								#return cropped
 

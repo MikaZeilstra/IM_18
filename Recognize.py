@@ -19,6 +19,12 @@ Hints:
 	You may need to define other functions.
 """
 def segment_and_recognize(plate_imgs):
+	#print(plate_imgs)
+	#cv2.namedWindow("pl" , cv2.WINDOW_NORMAL)
+	#cv2.imshow("pl", plate_imgs)
+	#cv2.waitKey()
+
+
 	# Initiate SIFT detector
 	# kp2 = []
 	# des2 = []

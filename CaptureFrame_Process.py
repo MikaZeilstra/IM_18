@@ -35,6 +35,7 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
     spf = int(np.round(t_total/ f_total))
     print(spf)
     platesList = []
+    start = time.time()
     while(True):
         ret, frame = cap.read()
         #print(ret)
@@ -53,11 +54,12 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
             if len(rec) != 0:
                 platesList.append(rec)
             #pass
+        #print(f_total)
         #cv2.imshow('frame', frame)
         #if cv2.waitKey(spf) & 0xFF == ord('q'):
          #      break
     #cv2.imwrite("BinTemplate.jpg", t)
-
+    print("Total time taken : " + str(time.time() - start))
     cv2.destroyAllWindows()
     cap.release()
 
