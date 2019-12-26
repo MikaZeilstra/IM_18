@@ -57,7 +57,7 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
         #print(f_total)
         #cv2.imshow('frame', frame)
         #if cv2.waitKey(spf) & 0xFF == ord('q'):
-         #      break
+        #      break
     #cv2.imwrite("BinTemplate.jpg", t)
     print("Total time taken : " + str(time.time() - start))
     cv2.destroyAllWindows()
@@ -83,7 +83,7 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
              realPlatesIndexes.append(i)
 
     for i, j in enumerate(realPlatesIndexes) :
-        print(uniqe[j])
+        print(plates[j])
 
     # print(uniqe)
     print(plates)

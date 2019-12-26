@@ -71,7 +71,8 @@ def plate_detection(image):
 	mask2 = np.zeros(image[:,:,0].shape, np.uint8)
 	for i in range(len(contours)):
 		#if (hierarchy[0][i][3] < 0 and hierarchy[0][i][2] > 0):
-		if(hierarchy[0][i][3] < 0):
+		#if(hierarchy[0][i][3] < 0):
+		if(True):
 			# peri = cv2.arcLength(contours[i], False)
 			# aprox = cv2.approxPolyDP(contours[i],peri * 0.02,False)
 			# if(len(aprox) == 4):

@@ -108,7 +108,7 @@ def segment_and_recognize(plate_imgs):
 				# cv2.waitKey()
 	#children = []
 	#childMap = defaultdict(list)
-	for id in contIds:
+	for id in contIds[:]:
 	 	#print(hier[0][id][2])
 	 	#print(id)
 	 	isInside = check_inside(brecs,brecs[id] , id)
@@ -120,12 +120,16 @@ def segment_and_recognize(plate_imgs):
 	# 		#print("t")
 	# 		#cv2.drawContours(newT, cont, id, 90, -1)
 
+
 	if(len(brecs) > 0):
 		mode_Y = st.mode(np.array(list(brecs.values()))[:,1])[0]
 		mode_High = st.mode(np.array(list(brecs.values()))[:, 3])[0]
 		eps = np.ceil(plate_imgs.shape[0] /10)
 
-		for id in contIds:
+		#print(mode_Y)
+		#print(eps)
+
+		for id in contIds[:]:
 			if not(mode_Y - eps < brecs[id][1] < mode_Y + eps and mode_High - eps < brecs[id][3] < mode_High + eps):
 				contIds.remove(id)
 				del brecs[id]
@@ -136,6 +140,8 @@ def segment_and_recognize(plate_imgs):
 	for id in contIds:
 		allDiffs = []
 
+		#cv2.rectangle(newT, (brecs[id][0], brecs[id][1]),(brecs[id][0] + brecs[id][2], brecs[id][1] + brecs[id][3]), 120, 1)
+		#print(brecs[id][1])
 		# for t in range(0, 10):
 		croppedImage = newT[brecs[id][1]:brecs[id][1] + brecs[id][3], brecs[id][0]:brecs[id][0] + brecs[id][2]]
 		#croppedImage = cv2.copyMakeBorder(croppedImage, 1, 1, 1, 1, cv2.BORDER_CONSTANT, value=0)
@@ -172,7 +178,7 @@ def segment_and_recognize(plate_imgs):
 
 
 
-		symbol = np.zeros(croppedImage.shape)
+		#symbol = np.zeros(croppedImage.shape)
 		for cid in ccontIds :
 			#pass
 
@@ -185,7 +191,7 @@ def segment_and_recognize(plate_imgs):
 		#print(len(cropchildMap[ccontIds[0]]))
 
 
-		mask = np.zeros(croppedImage.shape)
+		#mask = np.zeros(croppedImage.shape)
 
 
 		#cv2.drawContours(newT, cont, id, 255, -1)
@@ -194,8 +200,7 @@ def segment_and_recognize(plate_imgs):
 
 
 
-		# cv2.imshow("f", croppedImage)
-		# cv2.waitKey()
+
 
 		width = int(croppedImage.shape[1])
 		height = int(croppedImage.shape[0])
@@ -223,13 +228,13 @@ def segment_and_recognize(plate_imgs):
 			#cv2.imshow("L", np.hstack([croppedImage, resized]))
 			#cv2.waitKey()
 
-
-
-
-
+		#cv2.namedWindow("f",cv2.WINDOW_NORMAL)
+		#cv2.imshow("f", croppedImage)
+		#cv2.waitKey()
+#
 		minIndex = np.argmin(allDiffs)
 
-		#print("found possible " + str(minIndex) + " with diff " + str(allDiffs[minIndex]))
+		print("found possible " + str(minIndex) + " with diff " + str(allDiffs[minIndex]))
 		if (allDiffs[minIndex] < 0.35):
 			#pass
 			#print("WE FOUND A :" + str(minIndex))
