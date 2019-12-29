@@ -18,7 +18,7 @@ Outputs:(One)
 Hints:
 	You may need to define other functions.
 """
-def segment_and_recognize(plate_imgs):
+def segment_and_recognize(plate_imgs,trIm):
 	#print(plate_imgs)
 	#cv2.namedWindow("pl" , cv2.WINDOW_NORMAL)
 	#cv2.imshow("pl", plate_imgs)
@@ -28,18 +28,7 @@ def segment_and_recognize(plate_imgs):
 	# Initiate SIFT detector
 	# kp2 = []
 	# des2 = []
-	trIm = []
-	for y in range(0, 10):
-		trainingImage = cv2.imread('SameSizeNumbers/' + str(y) + '.bmp', cv2.IMREAD_GRAYSCALE)  # trainImage
-		trIm.append(trainingImage)
-		#trIm.append(cv2.Canny(trainingImage, 50, 150))
-		#kpt, dest = sift.detectAndCompute(trainingImage, None)
-		#kp2.append(kpt)
-		#des2.append(dest)
 
-	for y in range(1, 18):
-		trainingImage = cv2.imread('SameSizeLetters/' + str(y) + '.bmp', cv2.IMREAD_GRAYSCALE)  # trainImage
-		trIm.append(trainingImage)
 
 
 	#print(trIm)
@@ -47,21 +36,20 @@ def segment_and_recognize(plate_imgs):
 
 
 	gray = cv2.cvtColor(plate_imgs, cv2.COLOR_BGR2GRAY)
+	for it in range(3):
+		gray = cv2.bilateralFilter(gray, -1, 10, 11)
 
-	gray = cv2.bilateralFilter(gray,-1, 10,11)
-	gray = cv2.bilateralFilter(gray, -1, 10, 11)
-	gray = cv2.bilateralFilter(gray, -1, 10, 11)
 	t = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 25, 5)
 	# print(np.average(gray))
 	# gray = cv2.bilateralFilter(gray, 7, 21, 51)q
 
 	#
-	img3 = t
+	#img3 = t
 
 	# kernel = np.ones((2, 2), np.uint8)
 	#t = cv2.morphologyEx(t, cv2.MORPH_OPEN, kernel,iterations=1)
 	#t = cv2.morphologyEx(t, cv2.MORPH_CLOSE, kernel,iterations=1)
-	edges = cv2.Canny(t, 0, 100)
+	#newT = cv2.Canny(gray, 100, 200)
 
 
 
@@ -72,9 +60,9 @@ def segment_and_recognize(plate_imgs):
 
 	#edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, np.ones([2, 2]), iterations=2)
 
-	cont, hier = cv2.findContours(newT, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+	cont, hier = cv2.findContours(newT, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 	# mask = np.zeros(plate_imgs.shape)
-	c2 = []
+	#c2 = []
 	checked = []
 	brecs = {}
 	contIds = []
@@ -234,7 +222,7 @@ def segment_and_recognize(plate_imgs):
 #
 		minIndex = np.argmin(allDiffs)
 
-		print("found possible " + str(minIndex) + " with diff " + str(allDiffs[minIndex]))
+		#print("found possible " + str(minIndex) + " with diff " + str(allDiffs[minIndex]))
 		if (allDiffs[minIndex] < 0.35):
 			#pass
 			#print("WE FOUND A :" + str(minIndex))

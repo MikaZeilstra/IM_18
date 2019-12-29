@@ -25,7 +25,20 @@ Output: None
 
 def CaptureFrame_Process(file_path, sample_frequency, save_path):
     print("Now loading file " + file_path)
-    Symbols = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'B', 'D', 'F', 'G', 'H', 'J', 'k', 'L', 'M', 'N', 'P', 'R', 'S', 'T', 'V','X', 'Z']
+    Symbols = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'B', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'R', 'S', 'T', 'V','X', 'Z']
+
+    trIm = []
+    for y in range(0, 10):
+        trainingImage = cv2.imread('SameSizeNumbers/' + str(y) + '.bmp', cv2.IMREAD_GRAYSCALE)  # trainImage
+        trIm.append(trainingImage)
+    # trIm.append(cv2.Canny(trainingImage, 50, 150))
+    # kpt, dest = sift.detectAndCompute(trainingImage, None)
+    # kp2.append(kpt)
+    # des2.append(dest)
+
+    for y in range(1, 18):
+        trainingImage = cv2.imread('SameSizeLetters/' + str(y) + '.bmp', cv2.IMREAD_GRAYSCALE)  # trainImage
+        trIm.append(trainingImage)
 
     cap = cv2.VideoCapture(file_path)
     cap.set(cv2.CAP_PROP_POS_AVI_RATIO,1)
@@ -35,6 +48,9 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
     spf = int(np.round(t_total/ f_total))
     print(spf)
     platesList = []
+    lTimes = []
+    rTimes = []
+    pFound = []
     start = time.time()
     while(True):
         ret, frame = cap.read()
@@ -43,22 +59,32 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
             #cap.set(cv2.CAP_PROP_POS_AVI_RATIO, 0)
             #continue
             break
-        #start = time.time();
+        Lstart = time.time();
         plate = Localization.plate_detection(frame)
-        #print(time.time() - start)
+        lTimes.append(time.time() - Lstart)
+        pFound.append(len(plate))
+        #print("time for loc : " + str(time.time() - Lstart))
         #print(plate.shape)
-
+        Rstart = time.time();
+        #print(len(plate))
         for im in plate:
-            rec = Recognize.segment_and_recognize(im)
+
+            rec = Recognize.segment_and_recognize(im, trIm)
+
 
             if len(rec) != 0:
                 platesList.append(rec)
+        rTimes.append(time.time() - Rstart)
             #pass
         #print(f_total)
         #cv2.imshow('frame', frame)
         #if cv2.waitKey(spf) & 0xFF == ord('q'):
         #      break
+
     #cv2.imwrite("BinTemplate.jpg", t)
+    print("average plate found : " + str(np.average(pFound)))
+    print("Time  avg for loc : " + str(np.average(lTimes)))
+    print("Time  avg for rec : " + str(np.average(rTimes)))
     print("Total time taken : " + str(time.time() - start))
     cv2.destroyAllWindows()
     cap.release()
