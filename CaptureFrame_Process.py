@@ -107,9 +107,74 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
          if count[i] >= 5:
              realPlatesIndexes.append(i)
 
-    for i, j in enumerate(realPlatesIndexes) :
-        print(plates[j])
+    finalRealPlates = []
+    familyPlates = []
+    maxOccur = 0
+    lastFam = 0
+    print(len(realPlatesIndexes))
+
+    for i, j in enumerate(realPlatesIndexes):
+        if i < lastFam-1:
+            continue
+        familyPlates.append(j)
+        for k, l in enumerate(realPlatesIndexes):
+            if len(Diff(plates[j][0], plates[l][0])) <= 2 :
+                print("Comparing " + str(plates[j][0]) + " AND " + str(plates[l][0]))
+                familyPlates.append(l)
+
+
+        if len(familyPlates) > 1:
+            print("IM HERE")
+            maxOccur = i
+            for k in range(len(familyPlates)):
+                #print(l)
+                if k+1 != len(familyPlates):
+                    if plates[familyPlates[k]][1] < plates[familyPlates[k+1]][1] :
+                        maxOccur = k+1
+
+                lastFam = lastFam + k
+        else:
+            maxOccur = maxOccur + 1
+
+        print("-----------SEPARATOR-------------")
+        print(maxOccur)
+        print(plates[realPlatesIndexes[maxOccur]])
+        finalRealPlates.append(plates[realPlatesIndexes[maxOccur]])
+        #maxOccur = 0
+        familyPlates = []
+
+        #i = k
+
+    #
+    # for i in range(len(plates)):
+    #     familyPlates.append(i)
+    #     for j in range(len(plates)):
+    #         if len(Diff(plates[i][0], plates[j][0])) <= 2 :
+    #             familyPlates.append(j)
+    #             #print(j)
+    #
+    #     for k, l in enumerate(familyPlates):
+    #         print(l)
+    #         # if plates[l][1] > plates[l][1] :
+    #             #maxOccur = l
+    #     print("-----------SEPARATOR-------------")
+    #     finalRealPlates.append(plates[maxOccur])
+    #     maxOccur = 0
+    #     familyPlates = []
+    #     i = j
+
+    print("--------------FINAL RESULT------------")
+    for i, j in enumerate(finalRealPlates) :
+        #print()
+        print(j)
 
     # print(uniqe)
-    print(plates)
+    print("--------------REAL PLATES DETECTED------------")
+    for i, j in enumerate(realPlatesIndexes):
+        print(plates[j])
 
+
+
+def Diff(li1, li2):
+    li_dif = [i for i in li1 + li2 if i not in li1 or i not in li2]
+    return li_dif
