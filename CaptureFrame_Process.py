@@ -25,7 +25,7 @@ Output: None
 
 def CaptureFrame_Process(file_path, sample_frequency, save_path):
     print("Now loading file " + file_path)
-    Symbols = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'B', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'R', 'S', 'T', 'V','X', 'Z']
+    Symbols = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'B', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'R', 'S', 'T', 'V','X', 'Z','-']
 
     trIm = []
     for y in range(0, 10):
@@ -70,7 +70,6 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
         for im in plate:
 
             rec = Recognize.segment_and_recognize(im, trIm)
-
 
             if len(rec) != 0:
                 platesList.append(rec)

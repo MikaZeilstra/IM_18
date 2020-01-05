@@ -32,7 +32,7 @@ def segment_and_recognize(plate_imgs,trIm):
 
 
 	#print(trIm)
-
+	dashes = False
 
 
 	gray = cv2.cvtColor(plate_imgs, cv2.COLOR_BGR2GRAY)
@@ -71,14 +71,14 @@ def segment_and_recognize(plate_imgs,trIm):
 
 	brecVals = []
 	plate = []
+	dashid = []
 	for i in range(len(cont)):
 		if( len(cont[i]) > 3 ):
 			#minRec = cv2.minAreaRect(cont[i])
 			#hull = cv2.convexHull(cont[i])
 			brec = cv2.boundingRect(cont[i])
-
+			#cv2.rectangle(newT, (brec[0], brec[1]), (brec[0] + brec[2], brec[1] + brec[3]), 120, 1)
 			if(brec[2] < brec[3] and  brec[2] > 5 and brec[3] > 10 and [brec[0],brec[1]] not in checked ):
-				#cv2.rectangle(newT, (brec[0], brec[1]), (brec[0] + brec[2], brec[1] + brec[3]), 120, 1)
 				checked.append([brec[0],brec[1]])
 				brecs[i] = brec
 				contIds.append(i)
@@ -89,11 +89,10 @@ def segment_and_recognize(plate_imgs,trIm):
 				#print()
 				# cv2.imshow("", mask)
 				# cv2.waitKey()
-
-
-
-				# cv2.imshow("frame", edges)
-				# cv2.waitKey()
+			elif ( brec[2] < plate_imgs.shape[1]/3 and brec[2] < plate_imgs.shape[0]/3 and 1.1 >  brec[3] / brec[2] > 1/3.5 and [brec[0],brec[1]] not in checked ):
+				checked.append([brec[0], brec[1]])
+				dashid.append(i)
+				brecs[i] = brec
 	#children = []
 	#childMap = defaultdict(list)
 	for id in contIds[:]:
@@ -121,8 +120,24 @@ def segment_and_recognize(plate_imgs,trIm):
 			if not(mode_Y - eps < brecs[id][1] < mode_Y + eps and mode_High - eps < brecs[id][3] < mode_High + eps):
 				contIds.remove(id)
 				del brecs[id]
+		for id in dashid[:]:
+			if not(mode_Y - eps < brecs[id][1] and mode_High + eps > brecs[id][3]):
+				dashid.remove(id)
+				del brecs[id]
 	else:
 		return []
+
+	for id in dashid:
+		croppedImage = newT[brecs[id][1]:brecs[id][1] + brecs[id][3], brecs[id][0]:brecs[id][0] + brecs[id][2]].copy()
+		cv2.floodFill(croppedImage, None, (int(croppedImage.shape[1] / 2) - 1, int(croppedImage.shape[0] / 2) - 1), 255)
+		# print((int(croppedImage.shape[1]/2),int(croppedImage.shape[0]/2)))
+		# cv2.namedWindow("frame", cv2.WINDOW_NORMAL)
+		# cv2.imshow("frame", croppedImage)
+		# cv2.waitKey()
+		if (np.average(croppedImage) > 0.6 * 255):
+			dashes = True
+			#print(dashes)
+
 
 
 	for id in contIds:
@@ -261,11 +276,25 @@ def segment_and_recognize(plate_imgs,trIm):
 		#print("PRINTINT LICENTE PLATE : ----------------------------")
 
 		#print(finalPlate)
-
-		return tuple(finalPlate)
+		#print(dashes)
+		ffinalPlate = []
+		prevchar = -1
+		streak = 0
+		for char in finalPlate[:] :
+			if((0 <= prevchar <= 9 and char >= 10) or (0 <= char <= 9 and prevchar >= 10) and dashes):
+				ffinalPlate.append(27)
+				streak = 0
+			else:
+				streak += 1
+			if(streak >= 4):
+				ffinalPlate[-1] = 27
+				ffinalPlate.append(prevchar)
+			ffinalPlate.append(char)
+			prevchar = char
+			#print(ffinalPlate)
+		return tuple(ffinalPlate)
 	else:
 		return []
-
 	#cv2.drawContours(plate_imgs,c2, -1, 255, 1)
 	#cv2.imshow('frame', edges)
 	#cv2.imshow("frame", img3)
