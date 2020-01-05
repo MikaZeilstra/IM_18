@@ -6,7 +6,7 @@ import pandas as pd
 import Localization
 import Recognize
 import time
-
+import DispatchQueue
 
 """
 In this file, you will define your own CaptureFrame_Process funtion. In this function,
@@ -52,6 +52,8 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
     rTimes = []
     pFound = []
     start = time.time()
+    q = DispatchQueue.disQueue()
+    q.startWork()
     while(True):
         ret, frame = cap.read()
         #print(ret)
@@ -59,35 +61,39 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
             #cap.set(cv2.CAP_PROP_POS_AVI_RATIO, 0)
             #continue
             break
-        Lstart = time.time();
-        plate = Localization.plate_detection(frame)
-        lTimes.append(time.time() - Lstart)
-        pFound.append(len(plate))
-        #print("time for loc : " + str(time.time() - Lstart))
-        #print(plate.shape)
-        Rstart = time.time();
-        #print(len(plate))
-        for im in plate:
-
-            rec = Recognize.segment_and_recognize(im, trIm)
-
-            if len(rec) != 0:
-                platesList.append(rec)
-        rTimes.append(time.time() - Rstart)
+        q.addFrame(frame)
+        # Lstart = time.time();
+        # plate = Localization.plate_detection(frame)
+        # lTimes.append(time.time() - Lstart)
+        # pFound.append(len(plate))
+        # #print("time for loc : " + str(time.time() - Lstart))
+        # #print(plate.shape)
+        # Rstart = time.time();
+        # #print(len(plate))
+        # for im in plate:
+        #
+        #     rec = Recognize.segment_and_recognize(im, trIm)
+        #
+        #     if len(rec) != 0:
+        #         platesList.append(rec)
+        # rTimes.append(time.time() - Rstart)
             #pass
         #print(f_total)
         #cv2.imshow('frame', frame)
         #if cv2.waitKey(spf) & 0xFF == ord('q'):
         #      break
 
+
     #cv2.imwrite("BinTemplate.jpg", t)
-    print("average plate found : " + str(np.average(pFound)))
-    print("Time  avg for loc : " + str(np.average(lTimes)))
-    print("Time  avg for rec : " + str(np.average(rTimes)))
-    print("Total time taken : " + str(time.time() - start))
+    #print("average plate found : " + str(np.average(pFound)))
+    #print("Time  avg for loc : " + str(np.average(lTimes)))
+    #print("Time  avg for rec : " + str(np.average(rTimes)))
+
     cv2.destroyAllWindows()
     cap.release()
 
+    platesList = q.getResult()
+    print("Total time taken : " + str(time.time() - start))
 
     counter = Counter(platesList)
     #print(platesList)

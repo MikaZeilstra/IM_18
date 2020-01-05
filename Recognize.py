@@ -262,9 +262,9 @@ def segment_and_recognize(plate_imgs, trIm):
                     streak = 1
                 else:
                     streak += 1
-                    print(ffinalPlate)
-                    print(streak)
-                    print(finalPlate[i])
+                    #print(ffinalPlate)
+                    #print(streak)
+                    #print(finalPlate[i])
 
                 if (streak >= 4):
                     ffinalPlate[-1] = 27
