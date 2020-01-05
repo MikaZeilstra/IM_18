@@ -110,14 +110,14 @@ def segment_and_recognize(plate_imgs, trIm):
         #print(contIds)
         mode_Y = st.mode(np.array(list(brecs.values()))[:, 1])[0]
         mode_High = st.mode(np.array(list(brecs.values()))[:, 3])[0]
-        eps = np.ceil(plate_imgs.shape[0] / 8)
+        eps = np.ceil(plate_imgs.shape[0] / 10)
 
         #print(mode_Y)
         # print(eps)
 
         for id in contIds[:]:
             #cv2.rectangle(newT, (brecs[id][0], brecs[id][1]),(brecs[id][0] + brecs[id][2], brecs[id][1] + brecs[id][3]), 120, 1)
-            if not (mode_Y - eps < brecs[id][1] < mode_Y + eps and mode_High - eps < brecs[id][3] < mode_High + eps):
+            if not (mode_Y - eps <  brecs[id][1] < mode_Y + eps and mode_High - eps < brecs[id][3] < mode_High + eps):
                 contIds.remove(id)
                 del brecs[id]
         for id in dashid[:]:
