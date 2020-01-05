@@ -8,6 +8,7 @@ import Recognize
 import time
 import DispatchQueue
 
+
 """
 In this file, you will define your own CaptureFrame_Process funtion. In this function,
 you need three arguments: file_path(str type, the video file), sample_frequency(second), save_path(final results saving path).
@@ -25,7 +26,7 @@ Output: None
 
 def CaptureFrame_Process(file_path, sample_frequency, save_path):
     print("Now loading file " + file_path)
-    Symbols = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'B', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'R', 'S', 'T', 'V','X', 'Z','-']
+    Symbols = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'B', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'R', 'S', 'T', 'V','X', 'Z','-']
 
     trIm = []
     for y in range(0, 10):
@@ -46,22 +47,23 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
     f_total = cap.get(cv2.CAP_PROP_FRAME_COUNT)
     cap.set(cv2.CAP_PROP_POS_AVI_RATIO, 0)
     spf = int(np.round(t_total/ f_total))
-    print(spf)
     platesList = []
     lTimes = []
     rTimes = []
     pFound = []
     start = time.time()
-    q = DispatchQueue.disQueue()
+    q = DispatchQueue.disQueue(f_total)
     q.startWork()
+    framen = 0
     while(True):
+        framen += 1
         ret, frame = cap.read()
         #print(ret)
         if(not(ret)):
             #cap.set(cv2.CAP_PROP_POS_AVI_RATIO, 0)
             #continue
             break
-        q.addFrame(frame)
+        q.addFrame([frame,framen])
         # Lstart = time.time();
         # plate = Localization.plate_detection(frame)
         # lTimes.append(time.time() - Lstart)
@@ -95,11 +97,11 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
     platesList = q.getResult()
     print("Total time taken : " + str(time.time() - start))
 
-    counter = Counter(platesList)
+    #counter = Counter(platesList)
     #print(platesList)
 
-    uniqe = list(counter.keys())
-    count = list(counter.values())
+    uniqe = platesList.keys()
+    count = [len(platesList[x]) for x in uniqe]
 
     #Translate to symbols
     #print(uniqe)
@@ -170,7 +172,7 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
     #     i = j
 
     print("--------------FINAL RESULT------------")
-    for i, j in enumerate(finalRealPlates) :
+    for i, j in enumerate(finalRealPlates[:]) :
         #print()
         ffinalPlate = finalRealPlates[i][0]
         if(finalRealPlates[i][0][-1] == 27):
@@ -198,8 +200,14 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
                 prevchar = ffinalPlate[-1]
             finalRealPlates[i] = (ffinalPlate, finalRealPlates[i][1])
         ffinalPlate = [Symbols[s] for s in ffinalPlate]
-        finalRealPlates[i] = (ffinalPlate, finalRealPlates[i][1] )
-        print(finalRealPlates[i])
+        print()
+        finalRealPlates[i] = ("".join(ffinalPlate),np.min(platesList[j[0]]),np.min(platesList[j[0]]) *spf /1000)
+        print("".join(ffinalPlate), finalRealPlates[i][1])
+
+    data = pd.DataFrame.from_records(finalRealPlates,columns=["License plate", "Frame no.", "Timestamp(seconds)"])
+
+    out = open(save_path,"w+",newline = '\n')
+    data.to_csv(out, index=False)
 
     # print(uniqe)
     #print("--------------REAL PLATES DETECTED------------")

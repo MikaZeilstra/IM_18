@@ -4,8 +4,8 @@ import numpy as np
 # ground turth header: 'License plate', 'Timestamp', 'First frame', 'Last frame', 'Category'
 def get_args():
 	parser = argparse.ArgumentParser()
-	parser.add_argument('--file_path', type=str, default=None)
-	parser.add_argument('--ground_truth_path', type=str, default=None)
+	parser.add_argument('--file_path', type=str, default="out.csv")
+	parser.add_argument('--ground_truth_path', type=str, default="groundTruth.csv")
 	args = parser.parse_args()
 	return args
 
