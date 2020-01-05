@@ -252,29 +252,11 @@ def segment_and_recognize(plate_imgs, trIm):
 
          #print(finalPlate)
         # print(dashes)
-        ffinalPlate = []
-        prevchar = -1
-        streak = 0
-        for i in range(len(finalPlate[:])):
-            if(dashes):
-                if ((0 <= prevchar <= 9 and 26>= finalPlate[i] >= 10) or (0 <= finalPlate[i] <= 9 and  prevchar >= 10)):
-                    ffinalPlate.append(27)
-                    streak = 1
-                else:
-                    streak += 1
-                    #print(ffinalPlate)
-                    #print(streak)
-                    #print(finalPlate[i])
-
-                if (streak >= 4):
-                    ffinalPlate[-1] = 27
-                    ffinalPlate.append(finalPlate[i-1])
-                    streak = 1
-            ffinalPlate.append(finalPlate[i])
-            prevchar = ffinalPlate[-1]
+        if dashes:
+            finalPlate.append(27)
 
         # print(ffinalPlate)
-        return tuple(ffinalPlate)
+        return tuple(finalPlate)
     else:
         return []
 
@@ -293,3 +275,89 @@ def check_inside(br_list, check, br_id):
                 br[3] + br[3] and br_id != id:
             return id + 1
     return False
+
+
+#
+# 		for t in range(0, 27):
+# 			image = trIm[t]
+#
+# 			# resize image
+# 			resized = cv2.resize(image, dim, interpolation=cv2.INTER_NEAREST)
+#
+# 			# print("SHAPE RESIZED : " + str(resized.shape[0]))
+#
+# 			diff = np.logical_xor(resized, croppedImage, dtype=np.int16)
+#
+# 			diff = np.sum(diff) / (croppedImage.shape[0] * croppedImage.shape[1])
+#
+# 			allDiffs.append(diff)
+#
+# 			#print("COMPARING WITH " + str(t) + " AND DIFF IS: " + str(diff))
+# 			#print("DIFFERENCE : " + str(diff))
+# 			#cv2.namedWindow("L", cv2.WINDOW_NORMAL)
+# 			#cv2.imshow("L", np.hstack([croppedImage, resized]))
+# 			#cv2.waitKey()
+#
+# 		#cv2.namedWindow("f",cv2.WINDOW_NORMAL)
+# 		#cv2.imshow("f", croppedImage)
+# 		#cv2.waitKey()
+# #
+# 		minIndex = np.argmin(allDiffs)
+#
+# 		#print("found possible " + str(minIndex) + " with diff " + str(allDiffs[minIndex]))
+# 		if (allDiffs[minIndex] < 0.35):
+# 			#pass
+# 			#print("WE FOUND A :" + str(minIndex))
+# 			brecVals.append(brecs[id][0])
+# 			# print("APPENDING: " + str(brec[0]))
+# 			plate.append(minIndex)
+#
+#
+# 	finalPlate = []
+#
+# 	cv2.namedWindow("newT", cv2.WINDOW_NORMAL)
+# 	cv2.imshow("newT", newT)
+# 	#cv2.waitKey()
+#
+# 	#print(brecVals)
+#
+#
+#
+#
+# 	valsLength = len(brecVals)
+#
+# 	sortedMin = np.argsort(brecVals)
+#
+# 	#print(sortedMin)
+#
+# 	for i in range(0, valsLength) :
+# 		#minX = np.argmin(brecVals)
+#
+# 		finalPlate.append(plate[sortedMin[i]])
+# 		#brecVals.remove(brecVals[minX])
+# 		#plate.remove(plate[minX])
+#
+#
+# 	#print("LENGTH OF THE PLATE IS: " +str(len(finalPlate)))
+# 	if len(finalPlate) >= 6:
+# 		#print("PRINTINT LICENTE PLATE : ----------------------------")
+#
+# 		#print(finalPlate)
+#
+# 		return tuple(finalPlate)
+# 	else:
+# 		return []
+#
+# 	#cv2.drawContours(plate_imgs,c2, -1, 255, 1)
+# 	#cv2.imshow('frame', edges)
+# 	#cv2.imshow("frame", img3)
+# 	#cv2.waitKey()
+#
+# 	#return finalPlate
+#
+# def check_inside(br_list,check, br_id):
+# 	#print(br_list)
+# 	for id , br in br_list.items():
+# 		if check[0] >= br[0] and check[1] >= br[1] and check[0] + check[2] <= br[0] + br[2] and check[1] + check[3] <= br[3] + br[3] and br_id != id:
+# 			return id + 1
+# 	return False
