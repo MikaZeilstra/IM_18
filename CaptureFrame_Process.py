@@ -115,59 +115,57 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
 
     finalRealPlates = []
     familyPlates = []
-    maxOccur = 0
+    maxOccur = -1
+
+    maxPlate = []
     lastFam = 0
     print(len(realPlatesIndexes))
 
     for i, j in enumerate(realPlatesIndexes):
-        if i < lastFam-1:
+        if i < lastFam:
             continue
+        print("-----------SEPARATOR-------------")
         familyPlates.append(j)
+        print("Adding " + str(plates[j]))
         for k, l in enumerate(realPlatesIndexes):
-            if len(Diff(plates[j][0], plates[l][0])) <= 2 :
-                print("Comparing " + str(plates[j][0]) + " AND " + str(plates[l][0]))
+            if l == j :
+                continue
+            if not (Diff(plates[j][0], plates[l][0])):
+                print("Adding " + str(plates[l]))
                 familyPlates.append(l)
 
-
         if len(familyPlates) > 1:
-            print("IM HERE")
-            maxOccur = i
+            print("WE HAVE NOISE")
+            maxPlate = plates[familyPlates[0]]
+            max = plates[familyPlates[0]][1]
             for k in range(len(familyPlates)):
-                #print(l)
-                if k+1 != len(familyPlates):
-                    if plates[familyPlates[k]][1] < plates[familyPlates[k+1]][1] :
-                        maxOccur = k+1
+                if k+1 < len(familyPlates):
+                    if plates[familyPlates[k]][1] < plates[familyPlates[k+1]][1] and plates[familyPlates[k+1]][1] > max :
+                        print("INDEX: " + str(k+1))
+                        max = plates[familyPlates[k+1]][1]
+                        maxPlate = plates[familyPlates[k+1]]
+                        print("MAX " + str(max))
 
-                lastFam = lastFam + k
         else:
-            maxOccur = maxOccur + 1
+            maxPlate = plates[familyPlates[0]]
 
-        print("-----------SEPARATOR-------------")
-        print(maxOccur)
-        print(plates[realPlatesIndexes[maxOccur]])
-        finalRealPlates.append(plates[realPlatesIndexes[maxOccur]])
-        #maxOccur = 0
+        lastFam = lastFam + len(familyPlates)-2
+
         familyPlates = []
+        print(maxPlate)
+        finalRealPlates.append(maxPlate)
+        # print(maxOccur)
+        # print(plates[realPlatesIndexes[maxOccur]])
+        # finalRealPlates.append(plates[realPlatesIndexes[maxOccur]])
 
-        #i = k
 
-    #
-    # for i in range(len(plates)):
-    #     familyPlates.append(i)
-    #     for j in range(len(plates)):
-    #         if len(Diff(plates[i][0], plates[j][0])) <= 2 :
-    #             familyPlates.append(j)
-    #             #print(j)
-    #
-    #     for k, l in enumerate(familyPlates):
-    #         print(l)
-    #         # if plates[l][1] > plates[l][1] :
-    #             #maxOccur = l
-    #     print("-----------SEPARATOR-------------")
-    #     finalRealPlates.append(plates[maxOccur])
-    #     maxOccur = 0
-    #     familyPlates = []
-    #     i = j
+        #print(plates[realPlatesIndexes[maxOccur]])
+
+        #maxOccur = 0
+
+
+    finalRealPlates = unique_list(finalRealPlates)
+
 
     print("--------------FINAL RESULT------------")
     for i, j in enumerate(finalRealPlates) :
@@ -202,12 +200,38 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
         print(finalRealPlates[i])
 
     # print(uniqe)
-    #print("--------------REAL PLATES DETECTED------------")
-   # for i, j in enumerate(realPlatesIndexes):
-    #    print(plates[j])
+    # print("--------------REAL PLATES DETECTED------------")
+    # for i, j in enumerate(realPlatesIndexes):
+    #     print(plates[j])
 
 
 
 def Diff(li1, li2):
-    li_dif = [i for i in li1 + li2 if i not in li1 or i not in li2]
-    return li_dif
+    if len(li1) != len(li2) :
+        return True;
+    else:
+        diffCount = 0
+        for i, j in enumerate(li1):
+            if(j != li2[i]) :
+                diffCount = diffCount + 1
+
+        if (diffCount > 2) :
+            return True
+        else:
+            return False
+
+
+def unique_list(list1):
+    # intilize a null list
+    unique_list = []
+
+    # traverse for all elements
+    for x in list1:
+        # check if exists in unique_list or not
+        if x not in unique_list:
+            unique_list.append(x)
+            # print list
+    return unique_list
+    # for x in unique_list:
+    #     print
+    #     x,
