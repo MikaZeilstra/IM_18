@@ -26,17 +26,12 @@ Output: None
 
 
 def CaptureFrame_Process(file_path, sample_frequency, save_path):
-    print("Now loading file " + file_path)
     Symbols = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'B', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'R', 'S', 'T', 'V','X', 'Z','-']
 
     trIm = []
     for y in range(0, 10):
         trainingImage = cv2.imread('SameSizeNumbers/' + str(y) + '.bmp', cv2.IMREAD_GRAYSCALE)  # trainImage
         trIm.append(trainingImage)
-    # trIm.append(cv2.Canny(trainingImage, 50, 150))
-    # kpt, dest = sift.detectAndCompute(trainingImage, None)
-    # kp2.append(kpt)
-    # des2.append(dest)
 
     for y in range(1, 18):
         trainingImage = cv2.imread('SameSizeLetters/' + str(y) + '.bmp', cv2.IMREAD_GRAYSCALE)  # trainImage
@@ -59,61 +54,25 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
     while(True):
         framen += 1
         ret, frame = cap.read()
-        #print(ret)
         if(not(ret)):
-            #cap.set(cv2.CAP_PROP_POS_AVI_RATIO, 0)
-            #continue
             break
+
         #if( 397< framen <504):
         if(False):
             q.addFrame([frame,framen])
-        # Lstart = time.time();
-        # plate = Localization.plate_detection(frame)
-        # lTimes.append(time.time() - Lstart)
-        # pFound.append(len(plate))
-        # #print("time for loc : " + str(time.time() - Lstart))
-        # #print(plate.shape)
-        # Rstart = time.time();
-        # #print(len(plate))
-        # for im in plate:
-        #
-        #     rec = Recognize.segment_and_recognize(im, trIm)
-        #
-        #     if len(rec) != 0:
-        #         platesList.append(rec)
-        # rTimes.append(time.time() - Rstart)
-            #pass
-        #print(f_total)
-        #cv2.imshow('frame', frame)
-        #if cv2.waitKey(spf) & 0xFF == ord('q'):
-        #      break
-
-
-    #cv2.imwrite("BinTemplate.jpg", t)
-    #print("average plate found : " + str(np.average(pFound)))
-    #print("Time  avg for loc : " + str(np.average(lTimes)))
-    #print("Time  avg for rec : " + str(np.average(rTimes)))
+        q.addFrame([frame,framen])
 
     cv2.destroyAllWindows()
     cap.release()
 
     platesList, stamps = q.getResult()
 
-    #print(platesList)
-    #print(stamps)
-    #counter = Counter(platesList)
-    #print(platesList)
-
     uniqe = list(platesList.keys())
     count = [len(platesList[x]) for x in uniqe]
 
-    #Translate to symbols
-    #print(uniqe)
-    #uniqe = [[Symbols[s] for s in p] for p in uniqe]
     realPlatesIndexes = []
 
     plates = list(zip(uniqe,count))
-    print("--- PRINTING PLATES ---")
 
     for i, j in enumerate(count):
          if count[i] >= 5:
@@ -124,9 +83,12 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
     foundFamilies = np.full(len(realPlatesIndexes), -1)
     #print(foundFamilies)
     #maxOccur = -1
+    familyPlates = []
 
     #maxPlate = []
     lastFam = 0
+
+
     #print(len(realPlatesIndexes))
 
     for i, j in enumerate(realPlatesIndexes):
@@ -174,7 +136,6 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
     #finalRealPlates = unique_list(finalRealPlates)
 
 
-    print("--------------FINAL RESULT------------")
     for i, j in enumerate(finalRealPlates[:]) :
         #print()
         ffinalPlate = finalRealPlates[i][0]
@@ -191,9 +152,6 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
                     streak = 1
                 else:
                     streak += 1
-                    # print(ffinalPlate)
-                    # print(streak)
-                    # print(finalPlate[i])
 
                 if (streak >= 4):
                     ffinalPlate[-1] = 27
@@ -203,9 +161,8 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
                 prevchar = ffinalPlate[-1]
             finalRealPlates[i] = (ffinalPlate, finalRealPlates[i][1])
         ffinalPlate = [Symbols[s] for s in ffinalPlate]
-        print()
-        finalRealPlates[i] = ("".join(ffinalPlate),np.min(platesList[j[0]]),np.min(platesList[j[0]]) *spf /1000 /3)
-        print("".join(ffinalPlate), finalRealPlates[i][1])
+
+        finalRealPlates[i] = ("".join(ffinalPlate),np.min(platesList[j[0]]),np.min(platesList[j[0]]) *spf /1000)
 
     data = pd.DataFrame.from_records(finalRealPlates,columns=["License plate", "Frame no.", "Timestamp(seconds)"])
 
@@ -215,12 +172,6 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
 
     platesList = q.getResult()
     print("Total time taken : " + str(time.time() - start))
-
-    # print(uniqe)
-    # print("--------------REAL PLATES DETECTED------------")
-    # for i, j in enumerate(realPlatesIndexes):
-    #     print(plates[j])
-
 
 
 def Diff(li1, li2):
@@ -239,16 +190,10 @@ def Diff(li1, li2):
 
 
 def unique_list(list1):
-    # intilize a null list
     unique_list = []
 
-    # traverse for all elements
     for x in list1:
-        # check if exists in unique_list or not
         if x not in unique_list:
             unique_list.append(x)
-            # print list
+
     return unique_list
-    # for x in unique_list:
-    #     print
-    #     x,
