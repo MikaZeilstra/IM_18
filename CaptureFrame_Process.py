@@ -1,13 +1,9 @@
 import cv2
 import numpy as np
 from collections import Counter
-import os
 import pandas as pd
-import Localization
-import Recognize
 import time
 import DispatchQueue
-import csv
 
 
 """
@@ -28,25 +24,13 @@ Output: None
 def CaptureFrame_Process(file_path, sample_frequency, save_path):
     Symbols = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'B', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'R', 'S', 'T', 'V','X', 'Z','-']
 
-    trIm = []
-    for y in range(0, 10):
-        trainingImage = cv2.imread('SameSizeNumbers/' + str(y) + '.bmp', cv2.IMREAD_GRAYSCALE)  # trainImage
-        trIm.append(trainingImage)
-
-    for y in range(1, 18):
-        trainingImage = cv2.imread('SameSizeLetters/' + str(y) + '.bmp', cv2.IMREAD_GRAYSCALE)  # trainImage
-        trIm.append(trainingImage)
-
     cap = cv2.VideoCapture(file_path)
     cap.set(cv2.CAP_PROP_POS_AVI_RATIO,1)
     t_total = cap.get(cv2.CAP_PROP_POS_MSEC)
     f_total = cap.get(cv2.CAP_PROP_FRAME_COUNT)
     cap.set(cv2.CAP_PROP_POS_AVI_RATIO, 0)
     spf = int(np.round(t_total/ f_total))
-    #platesList = []
-    #lTimes = []
-    #rTimes = []
-    #pFound = []
+
     start = time.time()
     q = DispatchQueue.disQueue(f_total)
     q.startWork()
@@ -57,87 +41,45 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
         if(not(ret)):
             break
 
-        #if( 397< framen <504):
-        if(False):
+        if(True):
             q.addFrame([frame,framen])
-        q.addFrame([frame,framen])
 
     cv2.destroyAllWindows()
     cap.release()
 
-    platesList, stamps = q.getResult()
-
-    uniqe = list(platesList.keys())
-    count = [len(platesList[x]) for x in uniqe]
-
-    realPlatesIndexes = []
-
-    plates = list(zip(uniqe,count))
-
-    for i, j in enumerate(count):
-         if count[i] >= 5:
-             realPlatesIndexes.append(i)
-
-    finalRealPlates = []
-    #familyPlates = []
-    foundFamilies = np.full(len(realPlatesIndexes), -1)
-    #print(foundFamilies)
-    #maxOccur = -1
-    familyPlates = []
-
-    #maxPlate = []
+    platesList = q.getResult()
     lastFam = 0
+    #print(platesList)
+    platesList.sort(key=lambda x : x[1])
 
-
-    #print(len(realPlatesIndexes))
-
-    for i, j in enumerate(realPlatesIndexes):
-        #finalRealPlates.append(uniqe[j])
-        #familyPlates.append(j)
-        #print("Adding " + str(plates[j]))
+    foundFamilies = np.full(len(platesList), -1)
+    for i, j in enumerate(platesList):
         if(foundFamilies[i] == -1):
             foundFamilies[i] = lastFam
             lastFam += 1
-        for k in range(i+1,min(i+11, len(realPlatesIndexes))):
-            if not (Diff(plates[j][0], plates[realPlatesIndexes[k]][0])):
-                print("Adding " + str(plates[realPlatesIndexes[k]]))
+        for k in range(i+1, min(i+9, len(platesList))):
+            if not (Diff(platesList[i][0], platesList[k][0])):
                 foundFamilies[k] = foundFamilies[i]
 
-        # if len(familyPlates) > 1:
-        #     print("WE HAVE NOISE")
-        #     maxPlate = plates[familyPlates[0]]
-        #     max = plates[familyPlates[0]][1]
-        #     for k in range(len(familyPlates)):
-        #         if k+1 < len(familyPlates):
-        #             if plates[familyPlates[k]][1] < plates[familyPlates[k+1]][1] and plates[familyPlates[k+1]][1] > max :
-        #                 print("INDEX: " + str(k+1))
-        #                 max = plates[familyPlates[k+1]][1]
-        #                 maxPlate = plates[familyPlates[k+1]]
-        #                 print("MAX " + str(max))
+    families = [[]]
 
-        # else:
-        #  maxPlate = plates[familyPlates[0]]
+    for i, j in enumerate(foundFamilies):
+        if(len(families) <= j):
+            families.append([])
+        families[j].append(platesList[i])
 
-        #lastFam = lastFam + len(familyPlates)-2
+    for f in families[:]:
+        if(len(f)) < 5 :
+            families.remove(f)
 
-        #familyPlates = []
-        #print(maxPlate)
-        #finalRealPlates.append(maxPlate)
-        # print(maxOccur)
-        # print(plates[realPlatesIndexes[maxOccur]])
-        # finalRealPlates.append(plates[realPlatesIndexes[maxOccur]])
-
-
-        #print(plates[realPlatesIndexes[maxOccur]])
-
-        #maxOccur = 0
-    print(list(zip(finalRealPlates,foundFamilies)))
-
-    #finalRealPlates = unique_list(finalRealPlates)
-
+    finalRealPlates = []
+    for f in families[:]:
+        fFrame = min(f,key= lambda x: x[1])[1]
+        count = Counter(list(map(lambda x : x[0], f)))
+        plate = count.most_common(1)[0][0]
+        finalRealPlates.append((plate,fFrame))
 
     for i, j in enumerate(finalRealPlates[:]) :
-        #print()
         ffinalPlate = finalRealPlates[i][0]
         if(finalRealPlates[i][0][-1] == 27):
             ffinalPlate = []
@@ -162,7 +104,7 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
             finalRealPlates[i] = (ffinalPlate, finalRealPlates[i][1])
         ffinalPlate = [Symbols[s] for s in ffinalPlate]
 
-        finalRealPlates[i] = ("".join(ffinalPlate),np.min(platesList[j[0]]),np.min(platesList[j[0]]) *spf /1000)
+        finalRealPlates[i] = ("".join(ffinalPlate), finalRealPlates[i][1], finalRealPlates[i][1] *spf /1000)
 
     data = pd.DataFrame.from_records(finalRealPlates,columns=["License plate", "Frame no.", "Timestamp(seconds)"])
 
@@ -170,7 +112,7 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
     data.to_csv(out, index=False)
     out.close()
 
-    platesList = q.getResult()
+    print("")
     print("Total time taken : " + str(time.time() - start))
 
 
@@ -187,13 +129,3 @@ def Diff(li1, li2):
             return True
         else:
             return False
-
-
-def unique_list(list1):
-    unique_list = []
-
-    for x in list1:
-        if x not in unique_list:
-            unique_list.append(x)
-
-    return unique_list

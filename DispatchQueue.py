@@ -2,7 +2,6 @@ import threading
 import Localization
 import Recognize
 import cv2
-import collections
 import sys
 
 class disQueue:
@@ -59,7 +58,6 @@ class disQueue:
 
                 plate = Localization.plate_detection(cJ[0])
 
-                rec = []
                 for im in plate:
                     rec = Recognize.segment_and_recognize(im, self.trIm)
 
@@ -77,4 +75,4 @@ class disQueue:
         self.alive = False
         for t in self.threads:
             t.join()
-        return [self.platesList, self.stamps]
+        return list(zip(self.platesList, self.stamps))
