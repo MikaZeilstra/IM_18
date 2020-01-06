@@ -13,8 +13,11 @@ class disQueue:
     alive = False
     threads = []
     trIm = []
-    platesList = collections.defaultdict(list)
+    platesList = []
+    stamps = []
     total = -1
+    number_of_Threads = 8
+    batch_size = 10
 
     def __init__(self, total):
         for y in range(0, 10):
@@ -32,7 +35,7 @@ class disQueue:
 
     def startWork(self):
         self.alive = True
-        while(len(self.threads) <= 8):
+        while(len(self.threads) < self.number_of_Threads):
             nThread = threading.Thread(target=self.work)
             nThread.start()
             self.threads.append(nThread)
@@ -48,7 +51,7 @@ class disQueue:
             cStamps = []
             cQueue = []
             with self.qlock:
-                while(jc <= 10 and self.queue):
+                while(jc <= self.batch_size and self.queue):
                     jc += 1
                     cQueue.append(self.queue.pop(0))
             while cQueue:
@@ -60,17 +63,18 @@ class disQueue:
                 for im in plate:
                     rec = Recognize.segment_and_recognize(im, self.trIm)
 
-                if len(rec) != 0:
-                    cplates.append(rec)
-                    cStamps.append(cJ[1])
+                    if len(rec) != 0:
+                        cplates.append(rec)
+                        cStamps.append(cJ[1])
+
 
             with self.rlock:
-                for p,s in zip(cplates,cStamps):
-                   self.platesList[p].append(s)
+                self.platesList += cplates
+                self.stamps += cStamps
 
 
     def getResult(self):
         self.alive = False
         for t in self.threads:
             t.join()
-        return self.platesList
+        return [self.platesList, self.stamps]

@@ -1,6 +1,7 @@
 import pandas as pd
 import argparse
 import numpy as np
+import csv
 # ground turth header: 'License plate', 'Timestamp', 'First frame', 'Last frame', 'Category'
 def get_args():
 	parser = argparse.ArgumentParser()
@@ -12,13 +13,15 @@ def get_args():
 if __name__ == '__main__':
 	args = get_args()
 	student_results = pd.read_csv(args.file_path)
-	ground_truth = pd.read_csv(args.ground_truth_path)
+	ground_truth = pd.read_csv(args.ground_truth_path, quoting=csv.QUOTE_NONNUMERIC,quotechar="\'")
 	totalInput = len(student_results['License plate'])
 	totalPlates = len(ground_truth['License plate'])
 	# firstFrames = ground_truth['First frame'].tolist()
 	# lastFrames = ground_truth['Last frame'].tolist()
 	result = np.zeros((totalPlates, 4))
 	# 0: TP, 1: FP, 3: LTP
+
+	print(student_results)
 
 
 	# Find the last frame and number of plates for each category
@@ -35,6 +38,7 @@ if __name__ == '__main__':
 		timeStamp = student_results['Timestamp(seconds)'][i]
 		# Find the lines of solution where frameNo fits into the interval
 		interval = ground_truth[(ground_truth['First frame'] <= frameNo) & (ground_truth['Last frame'] >= frameNo)]
+		print(interval)
 		for j in range(len(interval)):
 			index = interval.index[j]
 			solutionPlate = ground_truth['License plate'][index]
@@ -69,7 +73,8 @@ if __name__ == '__main__':
 	print('---------------------------------------------------------')
 	print('%20s'%'License plate', '%10s'%'Result')
 	for i in range(totalPlates):
-		cat = ground_truth['Category'][i]-1
+		cat = int(ground_truth['Category'][i]-1)
+		#print(cat)
 		if result[i, 0] + result[i, 2] + result[i, 1] == 0:
 			finalResult = 'FN'
 			FN[cat] += 1
@@ -91,7 +96,7 @@ if __name__ == '__main__':
 			else:
 				finalResult = 'FP'
 				FP[cat] = FP[cat]+1
-		print('%4d'%i,'%14s'%ground_truth['License plate'][i],'%10s'%finalResult)
+		print('%4d'%i,'%14s'%ground_truth['License plate'][i],'%10s'%finalResult, cat+1)
 
 	output = np.zeros((5, numCategories*2+2))
 	for i in range(numCategories):
