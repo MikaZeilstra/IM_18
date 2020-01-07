@@ -23,12 +23,22 @@ Hints:
 def segment_and_recognize(plate_imgs, trIm):
     dashes = False
 
-    gray = cv2.cvtColor(plate_imgs, cv2.COLOR_BGR2GRAY)
-    for it in range(3):
-        gray = cv2.bilateralFilter(gray, -1, 10, 11)
+    if plate_imgs.shape[0]*3 * plate_imgs.shape[1]*3 == 0 :
+        return []
 
-    t = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 25, 5)
+    #plate_imgs = cv2.resize(plate_imgs,(plate_imgs.shape[1] * 3, plate_imgs.shape[0]*3),interpolation=cv2.INTER_NEAREST)
+
+    gray = cv2.cvtColor(plate_imgs, cv2.COLOR_BGR2GRAY)
+    # for it in range(3):
+    #     gray = cv2.bilateralFilter(gray, -1, 10, 11)
+
+    Tarea = int(plate_imgs.shape[1]*plate_imgs.shape[0]/500)
+
+    #print(Tarea)
+
+    t = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, Tarea if Tarea % 2 == 1 else Tarea +1, 5)
     newT = cv2.Laplacian(t, cv2.CV_8U)
+
 
 
     cont, hier = cv2.findContours(newT, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
@@ -129,9 +139,15 @@ def segment_and_recognize(plate_imgs, trIm):
         height = int(croppedImage.shape[0])
         dim = (width, height)
 
+        #cv2.namedWindow("t", cv2.WINDOW_NORMAL)
+        #cv2.imshow("t", croppedImage)
+        #cv2.waitKey()
+
         for t in range(0, 27):
             image = trIm[t]
             resized = cv2.resize(image, dim, interpolation=cv2.INTER_NEAREST)
+
+
 
             diff = np.logical_xor(resized, croppedImage, dtype=np.int16)
 
@@ -154,10 +170,14 @@ def segment_and_recognize(plate_imgs, trIm):
 
     sortedMin = np.argsort(brecVals)
 
+    # cv2.namedWindow("t", cv2.WINDOW_NORMAL)
+    # cv2.imshow("t", plate_imgs)
+    # cv2.waitKey()
 
     for i in range(0, valsLength):
         finalPlate.append(plate[sortedMin[i]])
     if len(finalPlate) >= 6:
+        #print(finalPlate)
         if dashes:
             finalPlate.append(27)
 

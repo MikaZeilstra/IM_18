@@ -42,7 +42,7 @@ if __name__ == '__main__':
 		for j in range(len(interval)):
 			index = interval.index[j]
 			solutionPlate = ground_truth['License plate'][index]
-			solutionTimeStamp = ground_truth['Timestamp'][index]
+			solutionTimeStamp = ground_truth['In beeld (tot)'][index]
 			if licensePlate == solutionPlate:
 				if timeStamp <= solutionTimeStamp + 0.5:
 					result[index, 0] += 1

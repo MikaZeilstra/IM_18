@@ -43,7 +43,7 @@ class disQueue:
         while self.alive or self.queue:
             if(len(self.queue) != 0):
                 with self.olock:
-                    sys.stdout.write("\r"+ str(1-(len(self.queue)/self.total)))
+                    sys.stdout.write("\r"+ str('{0:.1f}'.format((1-(len(self.queue)/self.total))*100)) + "%")
                     sys.stdout.flush()
             jc = 0
             cplates = []
@@ -75,4 +75,6 @@ class disQueue:
         self.alive = False
         for t in self.threads:
             t.join()
+
+        sys.stdout.write("\r" + str('{0:.1f}'.format(100.0) + "%"))
         return list(zip(self.platesList, self.stamps))

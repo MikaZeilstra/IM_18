@@ -41,6 +41,7 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
         if(not(ret)):
             break
 
+        #if(1357 < framen < 1404):
         if(True):
             q.addFrame([frame,framen])
 
@@ -58,7 +59,8 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
             foundFamilies[i] = lastFam
             lastFam += 1
         for k in range(i+1, min(i+9, len(platesList))):
-            if not (Diff(platesList[i][0], platesList[k][0])):
+            #print(Diff(platesList[i][0], platesList[k][0]))
+            if Diff(platesList[i][0], platesList[k][0]) <= 2:
                 foundFamilies[k] = foundFamilies[i]
 
     families = [[]]
@@ -74,10 +76,11 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
 
     finalRealPlates = []
     for f in families[:]:
+        #print(f)
         fFrame = min(f,key= lambda x: x[1])[1]
         count = Counter(list(map(lambda x : x[0], f)))
-        plate = count.most_common(1)[0][0]
-        finalRealPlates.append((plate,fFrame))
+        plate = count.most_common(1)[0]
+        finalRealPlates.append((plate[0],fFrame,plate[1]))
 
     for i, j in enumerate(finalRealPlates[:]) :
         ffinalPlate = finalRealPlates[i][0]
@@ -101,31 +104,52 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
                     streak = 1
                 ffinalPlate.append(finalRealPlates[i][0][c])
                 prevchar = ffinalPlate[-1]
-            finalRealPlates[i] = (ffinalPlate, finalRealPlates[i][1])
+            finalRealPlates[i] = (ffinalPlate, finalRealPlates[i][1], finalRealPlates[i][2])
         ffinalPlate = [Symbols[s] for s in ffinalPlate]
 
-        finalRealPlates[i] = ("".join(ffinalPlate), finalRealPlates[i][1], finalRealPlates[i][1] *spf /1000)
+        finalRealPlates[i] = ("".join(ffinalPlate), finalRealPlates[i][1], finalRealPlates[i][1] *spf /1000,finalRealPlates[i][2])
 
-    data = pd.DataFrame.from_records(finalRealPlates,columns=["License plate", "Frame no.", "Timestamp(seconds)"])
+    data = pd.DataFrame.from_records(finalRealPlates,columns=["License plate", "Frame no.", "Timestamp(seconds)","Occurences"])
 
     out = open(save_path,"w+",newline = '\n')
     data.to_csv(out, index=False)
     out.close()
 
+
     print("")
+    with pd.option_context('display.max_rows', None, 'display.max_columns', None):
+        print(data)
     print("Total time taken : " + str(time.time() - start))
 
 
 def Diff(li1, li2):
-    if len(li1) != len(li2) :
-        return True;
-    else:
-        diffCount = 0
-        for i, j in enumerate(li1):
-            if(j != li2[i]) :
-                diffCount = diffCount + 1
+    n = len(li1)
+    m = len(li2)
 
-        if (diffCount > 2) :
-            return True
-        else:
-            return False
+    me = np.zeros((n+1,m+1))
+
+    for i in range(n+1):
+        for j in range(m+1):
+            if (i == 0):
+                me[i][j] = j
+            elif (j == 0):
+                me[i][j] = i
+            else:
+                if (li1[i -1]!= li2[j-1]):
+                    me[i][j] = min(min(1+me[i-1][j], 1+me[i-1][j-1]), 1+me[i][j -1] );
+                else:
+                    me[i][j] = me[i-1][j-1];
+    #print(me)
+    return me[n][m]
+    # if len(li1) != len(li2) :
+    #     return True;
+    # else:
+    #     diffCount = 0
+    #     for i, j in enumerate(li1):
+    #         if(j != li2[i]) :
+    #             diffCount = diffCount + 1
+    #
+    #     if (diffCount > 2) :
+    #         return True
+    #     else:
+    #         return False

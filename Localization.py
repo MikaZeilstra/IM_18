@@ -18,6 +18,7 @@ Hints:
 """
 def plate_detection(image):
 
+
 	result = []
 
 	rgbEdges = np.zeros(image.shape, dtype=np.uint8)
@@ -39,11 +40,11 @@ def plate_detection(image):
 
 				leg_ratio = rec[1][0] / rec[1][1]
 
-				if(not (1/3 < leg_ratio < 3) and (1/5 < leg_ratio < 5)):
+				if(not (1/2 < leg_ratio < 2) and (1/5 < leg_ratio < 5)):
 					recp = np.array(cv2.boxPoints(rec), dtype=np.int32)
 					x_dis = np.max(recp[:, 0]) - np.min(recp[:, 0])
 					y_dis = np.max(recp[:, 1]) - np.min(recp[:, 1])
-					if(x_dis > 100 and y_dis > 20):
+					if(x_dis > 80 and y_dis > 10):
 						if(all([0 < xCor < image[:,:,0].shape[1]  for xCor in recp[:,0]]) and  all([0 < yCor < image[:,:,0].shape[0]  for yCor in recp[:,1]])):
 
 							if (rec[1][0] < rec[1][1]):
@@ -52,18 +53,22 @@ def plate_detection(image):
 							if (-42 < rec[2] < 42):
 								hull = cv2.convexHull(contours[i])
 								rectness = cv2.contourArea(hull[:, 0, :]) / cv2.contourArea(recp)
-
-								if ( rectness > 0.85 ):
-
+								#print(rectness)
+								if ( rectness > 0.80 ):
+									#cv2.fillPoly(image, [recp], (255, 0, 0))
 									rm = cv2.getRotationMatrix2D(tuple(rec[0]),rec[2],1)
 
-									image = cv2.warpAffine(src=image, M=rm ,dsize=(image[:,:,0].shape[1],image[:,:,0].shape[0]))
+									rotImg = cv2.warpAffine(src=image.copy(), M=rm ,dsize=(image[:,:,0].shape[1],image[:,:,0].shape[0]))
 
 									xCor = int(rec[0][0] - rec[1][0] / 2) -1
 									yCor = int(rec[0][1] - rec[1][1] / 2) -1
 
-									cropped = image[yCor: yCor + int(rec[1][1])+ 2,  xCor:xCor + int(rec[1][0]) + 2]
+									cropped = rotImg[yCor: yCor + int(rec[1][1])+ 2,  xCor:xCor + int(rec[1][0]) + 2]
 
 									result.append(cropped)
+
+	#cv2.namedWindow("t", cv2.WINDOW_NORMAL)
+	#cv2.imshow("t", image)
+	#cv2.waitKey()
 
 	return result
