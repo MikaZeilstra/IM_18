@@ -43,8 +43,7 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
             break
 
         #if(540 < framen < 577):
-        if(True):
-            q.addFrame([frame,framen])
+        q.addFrame([frame,framen])
 
     cv2.destroyAllWindows()
     cap.release()
@@ -59,7 +58,7 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
         if(foundFamilies[i] == -1):
             foundFamilies[i] = lastFam
             lastFam += 1
-        for k in range(i+1, min(i+9, len(platesList))):
+        for k in range(i+1, min(i+13, len(platesList))):
             #print(Diff(platesList[i][0], platesList[k][0]))
             if Diff(platesList[i][0], platesList[k][0]) <= 2:
                 foundFamilies[k] = foundFamilies[i]
