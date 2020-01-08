@@ -1,27 +1,24 @@
 import pandas as pd
 import argparse
 import numpy as np
-import csv
 # ground turth header: 'License plate', 'Timestamp', 'First frame', 'Last frame', 'Category'
 def get_args():
 	parser = argparse.ArgumentParser()
-	parser.add_argument('--file_path', type=str, default="out.csv")
-	parser.add_argument('--ground_truth_path', type=str, default="groundTruth.csv")
+	parser.add_argument('--file_path', type=str, default=None)
+	parser.add_argument('--ground_truth_path', type=str, default=None)
 	args = parser.parse_args()
 	return args
 
 if __name__ == '__main__':
 	args = get_args()
 	student_results = pd.read_csv(args.file_path)
-	ground_truth = pd.read_csv(args.ground_truth_path, quoting=csv.QUOTE_NONNUMERIC,quotechar="\'")
+	ground_truth = pd.read_csv(args.ground_truth_path)
 	totalInput = len(student_results['License plate'])
 	totalPlates = len(ground_truth['License plate'])
 	# firstFrames = ground_truth['First frame'].tolist()
 	# lastFrames = ground_truth['Last frame'].tolist()
 	result = np.zeros((totalPlates, 4))
-	# 0: TP, 1: FP, 3: LTP
-
-	print(student_results)
+	# 0: TP, 1: FP, 2: LTP
 
 
 	# Find the last frame and number of plates for each category
@@ -38,31 +35,21 @@ if __name__ == '__main__':
 		timeStamp = student_results['Timestamp(seconds)'][i]
 		# Find the lines of solution where frameNo fits into the interval
 		interval = ground_truth[(ground_truth['First frame'] <= frameNo) & (ground_truth['Last frame'] >= frameNo)]
-		print(interval)
 		for j in range(len(interval)):
 			index = interval.index[j]
 			solutionPlate = ground_truth['License plate'][index]
-			solutionTimeStamp = ground_truth['In beeld (tot)'][index]
+			solutionTimeStamp = ground_truth['Timestamp'][index]
 			if licensePlate == solutionPlate:
-				if timeStamp <= solutionTimeStamp + 0.5:
+				if timeStamp <= solutionTimeStamp + 2:
 					result[index, 0] += 1
 				else:
 					result[index, 2] += 1
+				if j == 1:
+					result[index-1, 1] -= 1
+				elif j == 0:
+					break
 			else:
 				result[index, 1] += 1
-	# Remove FPs that have been wrongly counted
-	for i in range(totalPlates-1):
-		if ground_truth['Timestamp'][i] == ground_truth['Timestamp'][i+1]:
-			temp = result[i,1]
-			result[i, 1] -= result[i+1, 1]
-			result[i+1, 1] -= temp
-			if result[i, 1] % 2 == 1:
-				result[i, 1] -= 1
-				result[i+1, 1] += 1
-			result[i, 1] /= 2
-			result[i+1, 1] /= 2
-
-
 
 	# Initialize arrays to save the final results per category
 	TP = np.zeros(numCategories)
@@ -74,7 +61,6 @@ if __name__ == '__main__':
 	print('%20s'%'License plate', '%10s'%'Result')
 	for i in range(totalPlates):
 		cat = int(ground_truth['Category'][i]-1)
-		#print(cat)
 		if result[i, 0] + result[i, 2] + result[i, 1] == 0:
 			finalResult = 'FN'
 			FN[cat] += 1
@@ -96,7 +82,7 @@ if __name__ == '__main__':
 			else:
 				finalResult = 'FP'
 				FP[cat] = FP[cat]+1
-		print('%4d'%i,'%14s'%ground_truth['License plate'][i],'%10s'%finalResult, cat+1)
+		print('%4d'%i,'%14s'%ground_truth['License plate'][i],'%10s'%finalResult)
 
 	output = np.zeros((5, numCategories*2+2))
 	for i in range(numCategories):
