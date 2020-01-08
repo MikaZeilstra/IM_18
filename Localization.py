@@ -45,8 +45,8 @@ def plate_detection(image):
 					x_dis = np.max(recp[:, 0]) - np.min(recp[:, 0])
 					y_dis = np.max(recp[:, 1]) - np.min(recp[:, 1])
 					if(x_dis > 80 and y_dis > 10):
-						if(all([0 < xCor < image[:,:,0].shape[1]  for xCor in recp[:,0]]) and  all([0 < yCor < image[:,:,0].shape[0]  for yCor in recp[:,1]])):
 
+						if(all([0 < xCor < image[:,:,0].shape[1]  for xCor in recp[:,0]]) and  all([0 < yCor < image[:,:,0].shape[0]  for yCor in recp[:,1]])):
 							if (rec[1][0] < rec[1][1]):
 								rec = (rec[0], (rec[1][1], rec[1][0]), rec[2] + 90)
 
@@ -56,6 +56,7 @@ def plate_detection(image):
 								#print(rectness)
 								if ( rectness > 0.80 ):
 									#cv2.fillPoly(image, [recp], (255, 0, 0))
+
 									rm = cv2.getRotationMatrix2D(tuple(rec[0]),rec[2],1)
 
 									rotImg = cv2.warpAffine(src=image.copy(), M=rm ,dsize=(image[:,:,0].shape[1],image[:,:,0].shape[0]))

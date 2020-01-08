@@ -35,13 +35,14 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
     q = DispatchQueue.disQueue(f_total)
     q.startWork()
     framen = 0
+    print("Now loading : " + file_path)
     while(True):
         framen += 1
         ret, frame = cap.read()
         if(not(ret)):
             break
 
-        #if(1357 < framen < 1404):
+        #if(540 < framen < 577):
         if(True):
             q.addFrame([frame,framen])
 

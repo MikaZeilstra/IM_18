@@ -16,7 +16,7 @@ class disQueue:
     stamps = []
     total = -1
     number_of_Threads = 8
-    batch_size = 10
+    batch_size = 20
 
     def __init__(self, total):
         for y in range(0, 10):

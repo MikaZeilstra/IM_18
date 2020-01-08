@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 from collections import defaultdict
 from scipy import stats as st
+from itertools import repeat
 
 """
 In this file, you will define your own segment_and_recognize function.
@@ -26,19 +27,23 @@ def segment_and_recognize(plate_imgs, trIm):
     if plate_imgs.shape[0]*3 * plate_imgs.shape[1]*3 == 0 :
         return []
 
-    #plate_imgs = cv2.resize(plate_imgs,(plate_imgs.shape[1] * 3, plate_imgs.shape[0]*3),interpolation=cv2.INTER_NEAREST)
+    plate_imgs = cv2.resize(plate_imgs,(plate_imgs.shape[1] * 3, plate_imgs.shape[0]*3),interpolation=cv2.INTER_NEAREST)
 
     gray = cv2.cvtColor(plate_imgs, cv2.COLOR_BGR2GRAY)
-    # for it in range(3):
-    #     gray = cv2.bilateralFilter(gray, -1, 10, 11)
 
-    Tarea = int(plate_imgs.shape[1]*plate_imgs.shape[0]/500)
+    #repeat(cv2.bilateralFilter(gray, -1, 5, 11),3)
+
+    Tarea = int(plate_imgs.shape[1]*plate_imgs.shape[0]/400)
 
     #print(Tarea)
 
     t = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, Tarea if Tarea % 2 == 1 else Tarea +1, 5)
     newT = cv2.Laplacian(t, cv2.CV_8U)
+    #newT = cv2.Canny(gray,110, 125)
 
+    # cv2.namedWindow("t", cv2.WINDOW_NORMAL)
+    # cv2.imshow("t",newT)
+    # cv2.waitKey()
 
 
     cont, hier = cv2.findContours(newT, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
@@ -73,12 +78,12 @@ def segment_and_recognize(plate_imgs, trIm):
             del brecs[id]
 
 
+    #print(eps)
     if (len(brecs) > 0):
 
         mode_Y = st.mode(np.array(list(brecs.values()))[:, 1])[0]
         mode_High = st.mode(np.array(list(brecs.values()))[:, 3])[0]
-        eps = np.ceil(plate_imgs.shape[0] / 10)
-
+        eps = int(np.ceil(plate_imgs.shape[0] / 10))
 
         for id in contIds[:]:
 
@@ -133,15 +138,15 @@ def segment_and_recognize(plate_imgs, trIm):
             cv2.drawContours(croppedImage, ccontours, cid, 255, -1)
             cv2.drawContours(croppedImage, cropchildMap[cid], -1, 0, -1)
 
-        croppedImage = cv2.morphologyEx(croppedImage, cv2.MORPH_OPEN, np.ones([2, 2]), iterations=1)
-
         width = int(croppedImage.shape[1])
         height = int(croppedImage.shape[0])
-        dim = (width, height)
 
-        #cv2.namedWindow("t", cv2.WINDOW_NORMAL)
-        #cv2.imshow("t", croppedImage)
-        #cv2.waitKey()
+
+
+        croppedImage = cv2.morphologyEx(croppedImage, cv2.MORPH_OPEN, np.ones([int(np.ceil(width/20)), int(np.ceil(height/20))]), iterations=1)
+
+        dim = (width, height)
+        #print(dim)
 
         for t in range(0, 27):
             image = trIm[t]
@@ -155,6 +160,9 @@ def segment_and_recognize(plate_imgs, trIm):
 
             allDiffs.append(diff)
 
+            #cv2.namedWindow("t", cv2.WINDOW_NORMAL)
+            #cv2.imshow("t", np.hstack([croppedImage,resized] ))
+            #cv2.waitKey()
         minIndex = np.argmin(allDiffs)
 
         if (allDiffs[minIndex] < 0.35):
@@ -170,9 +178,9 @@ def segment_and_recognize(plate_imgs, trIm):
 
     sortedMin = np.argsort(brecVals)
 
-    # cv2.namedWindow("t", cv2.WINDOW_NORMAL)
-    # cv2.imshow("t", plate_imgs)
-    # cv2.waitKey()
+    #cv2.namedWindow("t", cv2.WINDOW_NORMAL)
+    #cv2.imshow("t", newT)
+    #cv2.waitKey()
 
     for i in range(0, valsLength):
         finalPlate.append(plate[sortedMin[i]])
